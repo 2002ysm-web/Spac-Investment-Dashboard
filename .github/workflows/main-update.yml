@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -30,11 +32,9 @@ jobs:
           KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
 
       - name: Commit and push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
-          force: true
-          directory: '.'
-          file_pattern: 'data/spacs.json'
-          commit_message: 'data: auto update spacs.json'
+        run: |
+          git config user.name "spac-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git pull origin main --rebase --autostash || true
+          git add data/spacs.json
+          git diff --cached --quiet || (git commit -m "data: auto update" && git push origin HEAD:main --force)
