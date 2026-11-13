@@ -21,6 +21,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests pandas lxml
 
+      - name: Pull latest code
+        run: git pull origin main
+
       - name: Run script with API Upload
         env:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
