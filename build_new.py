@@ -1,10 +1,8 @@
 import os
 import sys
 import json
-import zipfile
-import io
 import base64
-import xml.etree.ElementTree as ET
+import io
 from datetime import datetime as dt, timedelta
 import requests
 import pandas as pd
@@ -20,7 +18,7 @@ TODAY = dt.now().date()
 
 def get_krx_spac_list():
     """
-    5. 한국거래소(KRX) 코스닥 공시 자료 소속부 'SPAC' 분류 전체 종목 조회
+    한국거래소(KRX) 코스닥 공시 자료 소속부 'SPAC' 분류 전체 종목 조회
     (KIND 상장법인목록 크롤링 활용)
     """
     spacs = []
@@ -49,7 +47,7 @@ def get_krx_spac_list():
 
 def get_market_price_and_status(code):
     """
-    8. 네이버 증권/실시간 시세 연동을 통한 현재가, 거래정지, 합병승인/철회 상태 파악
+    네이버 증권/실시간 시세 연동을 통한 현재가, 거래정지, 합병승인/철회 상태 파악
     """
     current_price = 0
     is_suspended = False
@@ -71,178 +69,4 @@ def get_market_price_and_status(code):
 
 def fetch_dart_spac_terms(corp_code, ipo_price=2000):
     """
-    6 & 8. DART 공시자료(증권발행실적보고서 / 사업보고서) 연동
-    공모금, 예치비율, 예치이자율, 공모주식수 파싱
-    """
-    deposit_ratio = 1.00
-    deposit_rate = 0.032  # 기본 표준 예치금리 3.2%
-    ipo_shares = 5_000_000
-    ipo_amount = ipo_price * ipo_shares
-
-    if DART_API_KEY and corp_code:
-        try:
-            list_url = "https://opendart.fss.or.kr/api/list.json"
-            params = {
-                "crtfc_key": DART_API_KEY,
-                "corp_code": corp_code,
-                "bgn_de": (TODAY - timedelta(days=1095)).strftime("%Y%m%d"),
-                "page_count": 20
-            }
-            r = requests.get(list_url, params=params, timeout=10).json()
-            for item in r.get("list", []):
-                report_nm = item.get("report_nm", "")
-                if "합병" in report_nm and "철회" in report_nm:
-                    pass
-        except Exception:
-            pass
-
-    return {
-        "ipo_price": ipo_price,
-        "ipo_amount": ipo_amount,
-        "deposit_ratio": deposit_ratio,
-        "deposit_rate": deposit_rate,
-        "ipo_shares": ipo_shares
-    }
-
-
-def calculate_spac_metrics(spac_info):
-    """
-    1~4번 핵심 투자 판단 로직 연산
-    """
-    listing_dt = dt.strptime(spac_info["listing_date"], "%Y-%m-%d").date()
-    delisting_dt = listing_dt + timedelta(days=1095)
-    days_to_delisting = (delisting_dt - TODAY).days
-    days_since_listing = max(0, (TODAY - listing_dt).days)
-
-    ipo_price = spac_info["ipo_price"]
-    ipo_amount = spac_info["ipo_amount"]
-    deposit_ratio = spac_info["deposit_ratio"]
-    deposit_rate = spac_info["deposit_rate"]
-    ipo_shares = spac_info["ipo_shares"]
-    current_price = spac_info["current_price"]
-
-    # 1. 청산단가 근거 (연복리 예치이자율 적용 및 배당소득세 15.4% 제외 후 신탁자금 산출)
-    principal = ipo_amount * deposit_ratio
-    after_tax_rate = deposit_rate * (1 - 0.154)
-    final_trust_fund = principal * ((1 + after_tax_rate) ** 3)
-    liquidation_price = round(final_trust_fund / ipo_shares)
-
-    # 2. 투자유형 구분 (잔여일 365일 이상: 합병, 미만: 청산)
-    invest_type = "합병" if days_to_delisting >= 365 else "청산"
-
-    # 3. 예상수익률 근거 ((최종 청산단가 - 현재가) / 현재가 / 보유일수 * 365)
-    holding_days = max(1, days_to_delisting + 30)
-    if current_price > 0:
-        # ISA 계좌 (세금 없음)
-        raw_yield_isa = ((liquidation_price - current_price) / current_price) / holding_days * 365
-        yield_isa = round(raw_yield_isa * 100, 2)
-
-        # 일반 계좌 (세금 15.4% 제외)
-        profit = liquidation_price - current_price
-        after_tax_profit = profit * (1 - 0.154) if profit > 0 else profit
-        raw_yield_general = (after_tax_profit / current_price) / holding_days * 365
-        yield_general = round(raw_yield_general * 100, 2)
-    else:
-        yield_isa = 0.0
-        yield_general = 0.0
-
-    # 4. 매수적정가 근거 (공모가 + 일할 계산 적정가 기준 O/X 판정)
-    fair_buy_price = ipo_price + ((liquidation_price - ipo_price) / 1095.0) * days_since_listing
-    is_fair_buy = "O" if (current_price > 0 and fair_buy_price >= current_price) else "X"
-
-    return {
-        "code": spac_info["code"],
-        "name": spac_info["name"],
-        "is_fair_buy": is_fair_buy,
-        "invest_type": invest_type,
-        "delisting_date": delisting_dt.strftime("%Y-%m-%d"),
-        "current_price": current_price,
-        "liquidation_price": liquidation_price,
-        "yield_general": yield_general,
-        "yield_isa": yield_isa,
-        "deposit_rate": round(deposit_rate * 100, 2),
-        "status": spac_info.get("merger_status", "정상"),
-        "fair_price_calc": round(fair_buy_price)
-    }
-
-
-def upload_json_to_github(file_path="data/spacs.json"):
-    """
-    Git Push 충돌(fetch first)을 완전히 방지하기 위해 깃허브 REST API를 사용하여 직접 파일 업로드
-    """
-    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
-    repo = os.environ.get("REPO") or os.environ.get("GITHUB_REPOSITORY")
-    
-    if not token or not repo:
-        print("[Info] GitHub Token 또는 Repository 정보가 없어 API 업로드를 생략합니다.")
-        return
-
-    url = f"https://api.github.com/repos/{repo}/contents/{file_path}"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github+json"
-    }
-
-    sha = None
-    res = requests.get(url, headers=headers)
-    if res.status_code == 200:
-        sha = res.json().get("sha")
-
-    with open(file_path, "rb") as f:
-        content_bytes = f.read()
-    content_encoded = base64.b64encode(content_bytes).decode("utf-8")
-
-    payload = {
-        "message": "data: auto update spacs.json via API",
-        "content": content_encoded,
-        "branch": "main"
-    }
-    if sha:
-        payload["sha"] = sha
-
-    put_res = requests.put(url, headers=headers, json=payload)
-    if put_res.status_code in [200, 201]:
-        print("[Info] 깃허브 API를 통해 data/spacs.json이 성공적으로 업데이트되었습니다.")
-    else:
-        print(f"[Error] API 업로드 실패: {put_res.status_code}, {put_res.text}")
-
-
-def main():
-    print(f"[Info] Running SPAC Dashboard Pipeline ({TODAY})...")
-    raw_spacs = get_krx_spac_list()
-    results = []
-
-    for sp in raw_spacs:
-        cur_price, is_susp, status = get_market_price_and_status(sp["code"])
-        if cur_price == 0:
-            continue
-
-        terms = fetch_dart_spac_terms(corp_code=None, ipo_price=2000)
-        merged = {
-            **sp,
-            **terms,
-            "current_price": cur_price,
-            "is_suspended": is_susp,
-            "merger_status": status
-        }
-        calc_row = calculate_spac_metrics(merged)
-        results.append(calc_row)
-
-    results.sort(key=lambda x: x["yield_isa"], reverse=True)
-
-    output = {
-        "updated_at": dt.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "count": len(results),
-        "items": results
-    }
-
-    os.makedirs("data", exist_ok=True)
-    with open("data/spacs.json", "w", encoding="utf-8") as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
-
-    print(f"[Info] Saved {len(results)} SPAC records to data/spacs.json")
-
-
-if __name__ == "__main__":
-    main()
-    upload_json_to_github()
+    DART 공시자료 연동 및 스팩 조건 설정
