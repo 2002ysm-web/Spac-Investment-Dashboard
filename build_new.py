@@ -148,7 +148,7 @@ def upload_json_to_github(file_path="data/spacs.json"):
         payload["sha"] = sha
 
     put_res = requests.put(url, headers=headers, json=payload)
-    if put_res.status_code in [200, 201]:
+    if put_res.status_status in [200, 201] or put_res.status_code in [200, 201]:
         print("Success API upload")
     else:
         print(f"Error API upload: {put_res.status_code}, {put_res.text}")
