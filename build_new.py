@@ -17,10 +17,6 @@ TODAY = dt.now().date()
 
 
 def get_krx_spac_list():
-    """
-    한국거래소(KRX) 코스닥 공시 자료 소속부 'SPAC' 분류 전체 종목 조회
-    (KIND 상장법인목록 크롤링 활용)
-    """
     spacs = []
     try:
         url = "https://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13"
@@ -29,7 +25,6 @@ def get_krx_spac_list():
         dfs = pd.read_html(io.StringIO(res.text))
         df = dfs[0]
 
-        # 종목명에 '스팩'이 포함된 코스닥 종목 추출
         spac_df = df[df["회사명"].str.contains("스팩", na=False)].copy()
         for _, row in spac_df.iterrows():
             code = str(row["종목코드"]).zfill(6)
@@ -46,9 +41,6 @@ def get_krx_spac_list():
 
 
 def get_market_price_and_status(code):
-    """
-    네이버 증권/실시간 시세 연동을 통한 현재가, 거래정지, 합병승인/철회 상태 파악
-    """
     current_price = 0
     is_suspended = False
     merger_status = "정상"
@@ -68,5 +60,165 @@ def get_market_price_and_status(code):
 
 
 def fetch_dart_spac_terms(corp_code, ipo_price=2000):
-    """
-    DART 공시자료 연동 및 스팩 조건 설정
+    deposit_ratio = 1.00
+    deposit_rate = 0.032
+    ipo_shares = 5_000_000
+    ipo_amount = ipo_price * ipo_shares
+
+    if DART_API_KEY and corp_code:
+        try:
+            list_url = "https://opendart.fss.or.kr/api/list.json"
+            params = {
+                "crtfc_key": DART_API_KEY,
+                "corp_code": corp_code,
+                "bgn_de": (TODAY - timedelta(days=1095)).strftime("%Y%m%d"),
+                "page_count": 20
+            }
+            requests.get(list_url, params=params, timeout=10).json()
+        except Exception:
+            pass
+
+    return {
+        "ipo_price": ipo_price,
+        "ipo_amount": ipo_amount,
+        "deposit_ratio": deposit_ratio,
+        "deposit_rate": deposit_rate,
+        "ipo_shares": ipo_shares
+    }
+
+
+def calculate_spac_metrics(spac_info):
+    listing_dt = dt.strptime(spac_info["listing_date"], "%Y-%m-%d").date()
+    delisting_dt = listing_dt + timedelta(days=1095)
+    days_to_delisting = (delisting_dt - TODAY).days
+    days_since_listing = max(0, (TODAY - listing_dt).days)
+
+    ipo_price = spac_info["ipo_price"]
+    ipo_amount = spac_info["ipo_amount"]
+    deposit_ratio = spac_info["deposit_ratio"]
+    deposit_rate = spac_info["deposit_rate"]
+    ipo_shares = spac_info["ipo_shares"]
+    current_price = spac_info["current_price"]
+
+    principal = ipo_amount * deposit_ratio
+    after_tax_rate = deposit_rate * (1 - 0.154)
+    final_trust_fund = principal * ((1 + after_tax_rate) ** 3)
+    liquidation_price = round(final_trust_fund / ipo_shares)
+
+    invest_type = "합병" if days_to_delisting >= 365 else "청산"
+
+    holding_days = max(1, days_to_delisting + 30)
+    if current_price > 0:
+        raw_yield_isa = ((liquidation_price - current_price) / current_price) / holding_days * 365
+        yield_isa = round(raw_yield_isa * 100, 2)
+
+        profit = liquidation_price - current_price
+        after_tax_profit = profit * (1 - 0.154) if profit > 0 else profit
+        raw_yield_general = (after_tax_profit / current_price) / holding_days * 365
+        yield_general = round(raw_yield_general * 100, 2)
+    else:
+        yield_isa = 0.0
+        yield_general = 0.0
+
+    fair_buy_price = ipo_price + ((liquidation_price - ipo_price) / 1095.0) * days_since_listing
+    is_fair_buy = "O" if (current_price > 0 and fair_buy_price >= current_price) else "X"
+
+    return {
+        "code": spac_info["code"],
+        "name": spac_info["name"],
+        "is_fair_buy": is_fair_buy,
+        "invest_type": invest_type,
+        "delisting_date": delisting_dt.strftime("%Y-%m-%d"),
+        "current_price": current_price,
+        "liquidation_price": liquidation_price,
+        "yield_general": yield_general,
+        "yield_isa": yield_isa,
+        "deposit_rate": round(deposit_rate * 100, 2),
+        "status": spac_info.get("merger_status", "정상"),
+        "fair_price_calc": round(fair_buy_price)
+    }
+
+
+def upload_json_to_github(file_path="data/spacs.json"):
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    repo = os.environ.get("REPO") or os.environ.get("GITHUB_REPOSITORY")
+    
+    if not token or not repo:
+        print("[Error] GitHub Token 또는 Repository 정보가 없습니다.")
+        sys.exit(1)
+
+    url = f"https://api.github.com/repos/{repo}/contents/{file_path}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json"
+    }
+
+    sha = None
+    res = requests.get(url, headers=headers)
+    if res.status_code == 200:
+        sha = res.json().get("sha")
+
+    if not os.path.exists(file_path):
+        print(f"[Error] 업로드할 파일이 존재하지 않습니다: {file_path}")
+        sys.exit(1)
+
+    with open(file_path, "rb") as f:
+        content_bytes = f.read()
+    content_encoded = base64.b64encode(content_bytes).decode("utf-8")
+
+    payload = {
+        "message": "data: auto update spacs.json via API",
+        "content": content_encoded,
+        "branch": "main"
+    }
+    if sha:
+        payload["sha"] = sha
+
+    put_res = requests.put(url, headers=headers, json=payload)
+    if put_res.status_code in [200, 201]:
+        print("[Info] 깃허브 API를 통해 data/spacs.json이 성공적으로 업데이트되었습니다.")
+    else:
+        print(f"[Error] API 업로드 실패 (코드: {put_res.status_code})")
+        print(f"[Error Details] {put_res.text}")
+        sys.exit(1)
+
+
+def main():
+    print(f"[Info] Running SPAC Dashboard Pipeline ({TODAY})...")
+    raw_spacs = get_krx_spac_list()
+    results = []
+
+    for sp in raw_spacs:
+        cur_price, is_susp, status = get_market_price_and_status(sp["code"])
+        if cur_price == 0:
+            continue
+
+        terms = fetch_dart_spac_terms(corp_code=None, ipo_price=2000)
+        merged = {
+            **sp,
+            **terms,
+            "current_price": cur_price,
+            "is_suspended": is_susp,
+            "merger_status": status
+        }
+        calc_row = calculate_spac_metrics(merged)
+        results.append(calc_row)
+
+    results.sort(key=lambda x: x["yield_isa"], reverse=True)
+
+    output = {
+        "updated_at": dt.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "count": len(results),
+        "items": results
+    }
+
+    os.makedirs("data", exist_ok=True)
+    with open("data/spacs.json", "w", encoding="utf-8") as f:
+        json.dump(output, f, ensure_ascii=False, indent=2)
+
+    print(f"[Info] Saved {len(results)} SPAC records to data/spacs.json")
+
+
+if __name__ == "__main__":
+    main()
+    upload_json_to_github()
