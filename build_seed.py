@@ -2,13 +2,11 @@ import os
 import sys
 import json
 from datetime import datetime as dt
-import requests
-import pandas as pd
 
-def main(mode1, mode2):
+def main(mode1="check", mode2="auto"):
     print(f"[Info] Starting build_seed.py with modes: {mode1}, {mode2}")
     
-    # SPAC 투자 데이터 처리 및 API 연동 로직이 들어갈 자리입니다.
+    # SPAC 투자 대시보드 데이터 기본 구조
     spac_data = {
         "updated_at": dt.now().strftime("%Y-%m-%d %H:%M:%S"),
         "items": []
@@ -23,7 +21,7 @@ def main(mode1, mode2):
     print(f"[Info] Successfully updated {output_path}.")
 
 if __name__ == '__main__':
-    # 인자가 부족해도 에러가 나지 않도록 안전하게 기본값 처리
+    # 인자가 몇 개가 들어오든 절대 IndexError가 나지 않도록 안전장치 적용
     mode1 = sys.argv[1] if len(sys.argv) > 1 else "check"
     mode2 = sys.argv[2] if len(sys.argv) > 2 else "auto"
     main(mode1, mode2)
