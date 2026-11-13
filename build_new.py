@@ -7,14 +7,12 @@ from datetime import datetime as dt, timedelta
 import requests
 import pandas as pd
 
-# 환경변수에서 API 키 로드 (GitHub Secrets 설정 연동)
 DART_API_KEY = os.environ.get("DART_API_KEY", "")
 KRX_OPENAPI_KEY = os.environ.get("KRX_OPENAPI_KEY", "")
 KIS_APP_KEY = os.environ.get("KIS_APP_KEY", "")
 KIS_APP_SECRET = os.environ.get("KIS_APP_SECRET", "")
 
 TODAY = dt.now().date()
-
 
 def get_krx_spac_list():
     spacs = []
@@ -24,7 +22,6 @@ def get_krx_spac_list():
         res.encoding = "euc-kr"
         dfs = pd.read_html(io.StringIO(res.text))
         df = dfs[0]
-
         spac_df = df[df["회사명"].str.contains("스팩", na=False)].copy()
         for _, row in spac_df.iterrows():
             code = str(row["종목코드"]).zfill(6)
@@ -36,15 +33,13 @@ def get_krx_spac_list():
                 "listing_date": listing_date
             })
     except Exception as e:
-        print(f"[Warn] KRX 목록 조회 중 오류 발생: {e}")
+        print(f"KRX error: {e}")
     return spacs
-
 
 def get_market_price_and_status(code):
     current_price = 0
     is_suspended = False
     merger_status = "정상"
-
     try:
         url = f"https://polling.finance.naver.com/api/realtime?query=SERVICE_ITEM:{code}"
         res = requests.get(url, timeout=10).json()
@@ -55,37 +50,16 @@ def get_market_price_and_status(code):
             merger_status = "거래정지"
     except Exception:
         pass
-
     return current_price, is_suspended, merger_status
 
-
 def fetch_dart_spac_terms(corp_code, ipo_price=2000):
-    deposit_ratio = 1.00
-    deposit_rate = 0.032
-    ipo_shares = 5_000_000
-    ipo_amount = ipo_price * ipo_shares
-
-    if DART_API_KEY and corp_code:
-        try:
-            list_url = "https://opendart.fss.or.kr/api/list.json"
-            params = {
-                "crtfc_key": DART_API_KEY,
-                "corp_code": corp_code,
-                "bgn_de": (TODAY - timedelta(days=1095)).strftime("%Y%m%d"),
-                "page_count": 20
-            }
-            requests.get(list_url, params=params, timeout=10).json()
-        except Exception:
-            pass
-
     return {
         "ipo_price": ipo_price,
-        "ipo_amount": ipo_amount,
-        "deposit_ratio": deposit_ratio,
-        "deposit_rate": deposit_rate,
-        "ipo_shares": ipo_shares
+        "ipo_amount": ipo_price * 5_000_000,
+        "deposit_ratio": 1.00,
+        "deposit_rate": 0.032,
+        "ipo_shares": 5_000_000
     }
-
 
 def calculate_spac_metrics(spac_info):
     listing_dt = dt.strptime(spac_info["listing_date"], "%Y-%m-%d").date()
@@ -138,13 +112,12 @@ def calculate_spac_metrics(spac_info):
         "fair_price_calc": round(fair_buy_price)
     }
 
-
 def upload_json_to_github(file_path="data/spacs.json"):
     token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     repo = os.environ.get("REPO") or os.environ.get("GITHUB_REPOSITORY")
     
     if not token or not repo:
-        print("[Error] GitHub Token 또는 Repository 정보가 없습니다.")
+        print("Error: No Token or Repo")
         sys.exit(1)
 
     url = f"https://api.github.com/repos/{repo}/contents/{file_path}"
@@ -159,7 +132,7 @@ def upload_json_to_github(file_path="data/spacs.json"):
         sha = res.json().get("sha")
 
     if not os.path.exists(file_path):
-        print(f"[Error] 업로드할 파일이 존재하지 않습니다: {file_path}")
+        print(f"Error: File not found {file_path}")
         sys.exit(1)
 
     with open(file_path, "rb") as f:
@@ -176,15 +149,13 @@ def upload_json_to_github(file_path="data/spacs.json"):
 
     put_res = requests.put(url, headers=headers, json=payload)
     if put_res.status_code in [200, 201]:
-        print("[Info] 깃허브 API를 통해 data/spacs.json이 성공적으로 업데이트되었습니다.")
+        print("Success API upload")
     else:
-        print(f"[Error] API 업로드 실패 (코드: {put_res.status_code})")
-        print(f"[Error Details] {put_res.text}")
+        print(f"Error API upload: {put_res.status_code}, {put_res.text}")
         sys.exit(1)
 
-
 def main():
-    print(f"[Info] Running SPAC Dashboard Pipeline ({TODAY})...")
+    print(f"Running SPAC Pipeline ({TODAY})...")
     raw_spacs = get_krx_spac_list()
     results = []
 
@@ -192,20 +163,12 @@ def main():
         cur_price, is_susp, status = get_market_price_and_status(sp["code"])
         if cur_price == 0:
             continue
-
         terms = fetch_dart_spac_terms(corp_code=None, ipo_price=2000)
-        merged = {
-            **sp,
-            **terms,
-            "current_price": cur_price,
-            "is_suspended": is_susp,
-            "merger_status": status
-        }
+        merged = {**sp, **terms, "current_price": cur_price, "is_suspended": is_susp, "merger_status": status}
         calc_row = calculate_spac_metrics(merged)
         results.append(calc_row)
 
     results.sort(key=lambda x: x["yield_isa"], reverse=True)
-
     output = {
         "updated_at": dt.now().strftime("%Y-%m-%d %H:%M:%S"),
         "count": len(results),
@@ -216,8 +179,7 @@ def main():
     with open("data/spacs.json", "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
-    print(f"[Info] Saved {len(results)} SPAC records to data/spacs.json")
-
+    print(f"Saved {len(results)} records.")
 
 if __name__ == "__main__":
     main()
