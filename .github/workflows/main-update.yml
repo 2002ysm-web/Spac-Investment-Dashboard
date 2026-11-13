@@ -30,10 +30,11 @@ jobs:
           KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
 
       - name: Commit and push changes
-        run: |
-          git config user.name "spac-bot"
-          git config user.email "bot@users.noreply.github.com"
-          git fetch origin main
-          git reset --mixed origin/main || true
-          git add data/spacs.json
-          git diff --cached --quiet || (git commit -m "data: auto update" && git push origin HEAD:main)
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          force: true
+          directory: '.'
+          file_pattern: 'data/spacs.json'
+          commit_message: 'data: auto update spacs.json'
