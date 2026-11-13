@@ -29,5 +29,6 @@ jobs:
         run: |
           git config user.name "spac-bot"
           git config user.email "bot@users.noreply.github.com"
+          git pull origin main --rebase || true
           git add data/spacs.json
-          git diff --cached --quiet || (git commit -m "data: auto update" && git push)
+          git diff --cached --quiet || (git commit -m "data: auto update" && git push origin main)
