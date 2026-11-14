@@ -13,30 +13,59 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-slate-800">🚀 SPAC Investment Dashboard</h1>
-                <p class="text-sm text-gray-500 mt-1">KRX, 네이버 금융 및 DART 데이터를 기반으로 자동 갱신됩니다.</p>
+                <p class="text-sm text-gray-500 mt-1">KRX, 네이버 금융 및 DART 공시 데이터를 기반으로 자동 갱신됩니다.</p>
             </div>
             <div id="update-time" class="bg-white px-4 py-2 rounded-lg shadow text-sm font-medium text-gray-600">
                 데이터 로딩 중...
             </div>
         </div>
 
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <h3 class="text-sm font-medium text-gray-500">전체 모니터링 스팩</h3>
-                <p id="total-count" class="text-2xl font-bold text-slate-700 mt-2">-</p>
+        <!-- Recommendations Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- 합병형 추천 카드 -->
+            <div class="bg-gradient-to-br from-purple-900 to-slate-900 text-white p-6 rounded-2xl shadow-md relative overflow-hidden">
+                <div class="absolute top-4 right-4 bg-purple-500/30 text-purple-200 text-xs px-3 py-1 rounded-full font-medium">합병형 TOP 추천</div>
+                <h3 class="text-xs uppercase tracking-wider text-purple-300 font-semibold mb-1">MERGER TYPE BEST</h3>
+                <h2 id="rec-merger-name" class="text-2xl font-bold mb-3">-</h2>
+                <div class="grid grid-cols-3 gap-2 text-sm bg-white/10 p-3 rounded-xl backdrop-blur-sm">
+                    <div>
+                        <p class="text-xs text-purple-300">현재가</p>
+                        <p id="rec-merger-price" class="font-bold">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-purple-300">예상수익률(ISA)</p>
+                        <p id="rec-merger-yield" class="font-bold text-emerald-400">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-purple-300">청산단가</p>
+                        <p id="rec-merger-liq" class="font-bold">-</p>
+                    </div>
+                </div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <h3 class="text-sm font-medium text-gray-500">매수 적정 (O) 종목수</h3>
-                <p id="fair-buy-count" class="text-2xl font-bold text-blue-600 mt-2">-</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <h3 class="text-sm font-medium text-gray-500">최고 ISA 예상수익률</h3>
-                <p id="max-yield" class="text-2xl font-bold text-emerald-600 mt-2">-</p>
+
+            <!-- 청산형 추천 카드 -->
+            <div class="bg-gradient-to-br from-blue-900 to-slate-900 text-white p-6 rounded-2xl shadow-md relative overflow-hidden">
+                <div class="absolute top-4 right-4 bg-blue-500/30 text-blue-200 text-xs px-3 py-1 rounded-full font-medium">청산형 TOP 추천</div>
+                <h3 class="text-xs uppercase tracking-wider text-blue-300 font-semibold mb-1">LIQUIDATION TYPE BEST</h3>
+                <h2 id="rec-liq-name" class="text-2xl font-bold mb-3">-</h2>
+                <div class="grid grid-cols-3 gap-2 text-sm bg-white/10 p-3 rounded-xl backdrop-blur-sm">
+                    <div>
+                        <p class="text-xs text-blue-300">현재가</p>
+                        <p id="rec-liq-price" class="font-bold">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-blue-300">예상수익률(ISA)</p>
+                        <p id="rec-liq-yield" class="font-bold text-emerald-400">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-blue-300">청산단가</p>
+                        <p id="rec-liq-liq" class="font-bold">-</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Multi-Dropdown Filters & Search Bar -->
+        <!-- Filters & Search Bar -->
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
             <!-- 투자 유형 -->
             <div>
@@ -61,17 +90,16 @@
                 <label class="block text-xs font-semibold text-gray-500 mb-1">거래 상태</label>
                 <select id="filter-status" onchange="applyFilters()" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 bg-white">
                     <option value="all">전체 상태</option>
-                    <option value="정상">정상 거래</option>
+                    <option value="정상" selected>정상 거래</option>
                     <option value="거래정지">거래정지</option>
                 </select>
             </div>
-            <!-- 정렬 기준 -->
+            <!-- 예상 수익률 기준 선택 -->
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">정렬 기준</label>
-                <select id="sort-by" onchange="applyFilters()" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 bg-white">
-                    <option value="isa_desc">ISA 수익률 높은순</option>
-                    <option value="gen_desc">일반 수익률 높은순</option>
-                    <option value="price_asc">현재가 낮은순</option>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">예상 수익률 기준</label>
+                <select id="filter-yield-type" onchange="applyFilters()" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 bg-white">
+                    <option value="isa">ISA</option>
+                    <option value="general">일반</option>
                 </select>
             </div>
             <!-- 검색바 -->
@@ -114,25 +142,43 @@
                 const data = await response.json();
                 
                 document.getElementById('update-time').innerText = `최종 갱신: ${data.updated_at}`;
-                document.getElementById('total-count').innerText = `${data.count}개`;
-
-                let fairBuyCount = 0;
-                let maxYield = 0;
-
                 allItems = data.items;
-                allItems.forEach(item => {
-                    if (item.is_fair_buy === 'O') fairBuyCount++;
-                    if (item.yield_isa > maxYield) maxYield = item.yield_isa;
-                });
 
-                document.getElementById('fair-buy-count').innerText = `${fairBuyCount}개`;
-                document.getElementById('max-yield').innerText = `${maxYield}%`;
-
+                updateRecommendations(allItems);
                 applyFilters();
 
             } catch (error) {
                 console.error('데이터 로드 에러:', error);
                 document.getElementById('update-time').innerText = '데이터 로드 실패';
+            }
+        }
+
+        function updateRecommendations(items) {
+            // 조건: 매수적정 O 이면서 거래상태 정상인 종목들 대상
+            const validItems = items.filter(i => i.is_fair_buy === 'O' && i.status === '정상');
+
+            // 합병형 중 ISA 수익률 가장 높은 종목
+            const mergerItems = validItems.filter(i => i.invest_type === '합병').sort((a, b) => b.yield_isa - a.yield_isa);
+            if (mergerItems.length > 0) {
+                const bestM = mergerItems[0];
+                document.getElementById('rec-merger-name').innerText = bestM.name;
+                document.getElementById('rec-merger-price').innerText = bestM.current_price.toLocaleString() + '원';
+                document.getElementById('rec-merger-yield').innerText = bestM.yield_isa + '%';
+                document.getElementById('rec-merger-liq').innerText = bestM.liquidation_price.toLocaleString() + '원';
+            } else {
+                document.getElementById('rec-merger-name').innerText = '조건 만족 종목 없음';
+            }
+
+            // 청산형 중 ISA 수익률 가장 높은 종목
+            const liqItems = validItems.filter(i => i.invest_type === '청산').sort((a, b) => b.yield_isa - a.yield_isa);
+            if (liqItems.length > 0) {
+                const bestL = liqItems[0];
+                document.getElementById('rec-liq-name').innerText = bestL.name;
+                document.getElementById('rec-liq-price').innerText = bestL.current_price.toLocaleString() + '원';
+                document.getElementById('rec-liq-yield').innerText = bestL.yield_isa + '%';
+                document.getElementById('rec-liq-liq').innerText = bestL.liquidation_price.toLocaleString() + '원';
+            } else {
+                document.getElementById('rec-liq-name').innerText = '조건 만족 종목 없음';
             }
         }
 
@@ -167,7 +213,7 @@
             const typeFilter = document.getElementById('filter-type').value;
             const fairFilter = document.getElementById('filter-fair').value;
             const statusFilter = document.getElementById('filter-status').value;
-            const sortBy = document.getElementById('sort-by').value;
+            const yieldType = document.getElementById('filter-yield-type').value;
             const searchQuery = document.getElementById('search-input').value.toLowerCase();
 
             let filtered = allItems.filter(item => {
@@ -178,12 +224,10 @@
                 return true;
             });
 
-            // 정렬 적용
+            // 선택한 예상 수익률 기준(ISA 또는 일반)으로 내림차순 정렬
             filtered.sort((a, b) => {
-                if (sortBy === 'isa_desc') return b.yield_isa - a.yield_isa;
-                if (sortBy === 'gen_desc') return b.yield_general - a.yield_general;
-                if (sortBy === 'price_asc') return a.current_price - b.current_price;
-                return 0;
+                if (yieldType === 'isa') return b.yield_isa - a.yield_isa;
+                return b.yield_general - a.yield_general;
             });
 
             renderTable(filtered);
