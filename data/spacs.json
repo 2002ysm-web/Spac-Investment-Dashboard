@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-14 09:48:48",
+  "updated_at": "2026-11-14 10:04:34",
   "count": 69,
   "items": [
     {
@@ -211,20 +211,6 @@
       "deposit_rate": 3.2,
       "status": "정상",
       "fair_price_calc": 2113
-    },
-    {
-      "code": "482680",
-      "name": "미래에셋비전스팩7호",
-      "is_fair_buy": "O",
-      "invest_type": "청산",
-      "delisting_date": "2027-09-11",
-      "current_price": 2055,
-      "liquidation_price": 2167,
-      "yield_general": 5.08,
-      "yield_isa": 6.01,
-      "deposit_rate": 3.2,
-      "status": "정상",
-      "fair_price_calc": 2121
     },
     {
       "code": "484130",
@@ -815,20 +801,6 @@
       "fair_price_calc": 2051
     },
     {
-      "code": "0099X0",
-      "name": "IBKS제25호스팩",
-      "is_fair_buy": "O",
-      "invest_type": "합병",
-      "delisting_date": "2028-12-18",
-      "current_price": 2025,
-      "liquidation_price": 2167,
-      "yield_general": 2.72,
-      "yield_isa": 3.22,
-      "deposit_rate": 3.2,
-      "status": "정상",
-      "fair_price_calc": 2050
-    },
-    {
       "code": "0088D0",
       "name": "메리츠제1호스팩",
       "is_fair_buy": "O",
@@ -857,6 +829,20 @@
       "fair_price_calc": 2054
     },
     {
+      "code": "0099X0",
+      "name": "IBKS제25호스팩",
+      "is_fair_buy": "X",
+      "invest_type": "합병",
+      "delisting_date": "2028-12-18",
+      "current_price": 2025,
+      "liquidation_price": 2167,
+      "yield_general": 0.0,
+      "yield_isa": 0.0,
+      "deposit_rate": 3.2,
+      "status": "합병",
+      "fair_price_calc": 2050
+    },
+    {
       "code": "498390",
       "name": "한화플러스제5호스팩",
       "is_fair_buy": "X",
@@ -864,10 +850,10 @@
       "delisting_date": "2028-03-19",
       "current_price": 2115,
       "liquidation_price": 2167,
-      "yield_general": 1.46,
-      "yield_isa": 1.72,
+      "yield_general": 0.0,
+      "yield_isa": 0.0,
       "deposit_rate": 3.2,
-      "status": "정상",
+      "status": "합병",
       "fair_price_calc": 2092
     },
     {
@@ -881,7 +867,7 @@
       "yield_general": 0.0,
       "yield_isa": 0.0,
       "deposit_rate": 3.2,
-      "status": "정지",
+      "status": "합병",
       "fair_price_calc": 2106
     },
     {
@@ -895,8 +881,22 @@
       "yield_general": 0.0,
       "yield_isa": 0.0,
       "deposit_rate": 3.2,
-      "status": "정지",
+      "status": "합병",
       "fair_price_calc": 2107
+    },
+    {
+      "code": "482680",
+      "name": "미래에셋비전스팩7호",
+      "is_fair_buy": "X",
+      "invest_type": "청산",
+      "delisting_date": "2027-09-11",
+      "current_price": 2055,
+      "liquidation_price": 2167,
+      "yield_general": 0.0,
+      "yield_isa": 0.0,
+      "deposit_rate": 3.2,
+      "status": "합병",
+      "fair_price_calc": 2121
     },
     {
       "code": "482520",
@@ -909,7 +909,7 @@
       "yield_general": 0.0,
       "yield_isa": 0.0,
       "deposit_rate": 3.2,
-      "status": "정지",
+      "status": "합병",
       "fair_price_calc": 2126
     },
     {
@@ -951,7 +951,7 @@
       "yield_general": 0.0,
       "yield_isa": 0.0,
       "deposit_rate": 3.2,
-      "status": "정지",
+      "status": "합병",
       "fair_price_calc": 2151
     },
     {
@@ -962,10 +962,10 @@
       "delisting_date": "2027-01-31",
       "current_price": 2930,
       "liquidation_price": 2167,
-      "yield_general": -88.01,
-      "yield_isa": -88.01,
+      "yield_general": 0.0,
+      "yield_isa": 0.0,
       "deposit_rate": 3.2,
-      "status": "정상",
+      "status": "합병",
       "fair_price_calc": 2155
     }
   ]
