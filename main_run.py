@@ -15,32 +15,22 @@ KRX_OPENAPI_KEY = os.environ.get("KRX_OPENAPI_KEY", "")
 TODAY = dt.now().date()
 
 def get_latest_market_deposit_rate():
-    """
-    한국은행 ECOS Open API를 통해 '예금은행 가중평균금리(신규취급액 기준 저축성수신금리)' 연동.
-    실패 시 안전하게 기본값 연 3.2% 적용.
-    """
     default_rate = 0.032  # 기본값 연 3.2%
-    
     if not BOK_API_KEY:
         return default_rate
-        
     try:
-        # ECOS 통계표코드: 112Y003 (예금은행 가중평균금리), 통계항목코드: BEAZ00 (신규취급액 기준 저축성수신금리)
         end_str = TODAY.strftime('%Y%m')
         start_str = (TODAY - timedelta(days=90)).strftime('%Y%m')
         url = f"https://ecos.bok.or.kr/api/StatisticSearch/{BOK_API_KEY}/json/kr/1/1/112Y003/M/{start_str}/{end_str}/BEAZ00"
-        
         res = requests.get(url, timeout=5).json()
         if "StatisticSearch" in res and "row" in res["StatisticSearch"]:
             rows = res["StatisticSearch"]["row"]
             if rows:
                 latest_val = float(rows[-1]["DATA_VALUE"])
-                rate = latest_val / 100.0  # 예: 3.21 -> 0.0321
-                print(f"Successfully fetched BOK Savings Deposit Rate: {latest_val}%")
+                rate = latest_val / 100.0
                 return rate
     except Exception as e:
-        print(f"BOK API fetch error (fallback to default 3.2%): {e}")
-        
+        print(f"BOK API fetch error: {e}")
     return default_rate
 
 def get_dart_corp_codes():
@@ -100,12 +90,12 @@ def check_market_and_dart_status(code, corp_code):
         ms = str(datas.get("ms", ""))
         if ms in ["STOP", "HALT", "SUSPENSION"] or current_price == 0:
             is_suspended = True
-            status = "거래정지"
+            status = "정지"
     except Exception:
         is_suspended = True
-        status = "거래정지"
+        status = "정지"
 
-    # 2. DART 공시 기반 상태 확인 (최신 접수일자 순 정렬)
+    # 2. DART 공시 기반 상태 확인 (합병 승인/완료 및 거래정지 여부 정밀 판정)
     if DART_API_KEY and corp_code:
         try:
             bgn_de = (TODAY - timedelta(days=180)).strftime('%Y%m%d')
@@ -118,14 +108,15 @@ def check_market_and_dart_status(code, corp_code):
                 for r in reports_sorted:
                     report_nm = r.get("report_nm", "")
                     if any(k in report_nm for k in ["거래정지", "매매거래정지", "상장예비심사", "예비심사청구"]):
-                        status = "거래정지"
+                        status = "정지"
+                        is_suspended = True
+                        break
+                    elif any(k in report_nm for k in ["합병승인", "합병종료", "합병완료", "합병신주상장", "주권상장폐지"]):
+                        status = "합병"
                         is_suspended = True
                         break
                     elif "합병철회" in report_nm or "합병의 철회" in report_nm:
-                        status = "합병철회"
-                        break
-                    elif "합병종료" in report_nm or "합병승인" in report_nm:
-                        status = "합병승인"
+                        status = "정상" # 철회된 경우는 정상 거래 상태로 환원
                         break
         except Exception as e:
             print(f"DART API error for {code}: {e}")
@@ -133,7 +124,7 @@ def check_market_and_dart_status(code, corp_code):
     return current_price, is_suspended, status
 
 def fetch_dart_spac_terms():
-    deposit_rate = get_latest_market_deposit_rate()  # 한국은행 시중 예금금리 실시간 연동
+    deposit_rate = get_latest_market_deposit_rate()
     return {
         "ipo_price": 2000,
         "ipo_amount": 2000 * 5_000_000,
@@ -165,7 +156,7 @@ def calculate_spac_metrics(spac_info):
     invest_type = "합병" if days_to_delisting >= 365 else "청산"
 
     holding_days = max(1, days_to_delisting + 30)
-    if current_price > 0 and not is_suspended and merger_status != "거래정지":
+    if current_price > 0 and not is_suspended and merger_status not in ["정지", "합병"]:
         raw_yield_isa = ((liquidation_price - current_price) / current_price) / holding_days * 365
         yield_isa = round(raw_yield_isa * 100, 2)
 
@@ -178,7 +169,7 @@ def calculate_spac_metrics(spac_info):
         yield_general = 0.0
 
     fair_buy_price = ipo_price + ((liquidation_price - ipo_price) / 1095.0) * days_since_listing
-    is_fair_buy = "O" if (current_price > 0 and not is_suspended and merger_status != "거래정지" and fair_buy_price >= current_price) else "X"
+    is_fair_buy = "O" if (current_price > 0 and not is_suspended and merger_status not in ["정지", "합병"] and fair_buy_price >= current_price) else "X"
 
     return {
         "code": spac_info["code"],
