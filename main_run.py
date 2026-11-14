@@ -75,22 +75,24 @@ def check_market_and_dart_status(code, corp_code):
         is_suspended = True
         status = "거래정지"
 
-    # 2. DART 공시 기반 상태 확인 (최신 접수일자 순 정렬 후 반영)
-    if DART_API_KEY and corp_code and not is_suspended:
+    # 2. DART 공시 연동 고도화 (최근 180일간의 모든 공시 대상 탐색 및 최신순 정렬)
+    if DART_API_KEY and corp_code:
         try:
-            bgn_de = (TODAY - timedelta(days=365)).strftime('%Y%m%d')
-            url = f"https://opendart.fss.or.kr/api/list.json?crtfc_key={DART_API_KEY}&corp_code={corp_code}&bgn_de={bgn_de}&pblntf_ty=A"
+            bgn_de = (TODAY - timedelta(days=180)).strftime('%Y%m%d')
+            # pblntf_ty 파라미터를 제외하여 모든 공시 유형(지분, 발행, 기타경영 등) 조회
+            url = f"https://opendart.fss.or.kr/api/list.json?crtfc_key={DART_API_KEY}&corp_code={corp_code}&bgn_de={bgn_de}"
             res = requests.get(url, timeout=5).json()
             if res.get("status") == "000":
                 reports = res.get("list", [])
-                # 접수일자(rcept_dt) 기준 내림차순(최신순) 정렬
                 reports_sorted = sorted(reports, key=lambda x: x.get("rcept_dt", ""), reverse=True)
                 
                 for r in reports_sorted:
                     report_nm = r.get("report_nm", "")
-                    # 최신순으로 스캔하므로 가장 먼저 매칭되는 결정적 공시가 최종 상태가 됨
-                    if "매매거래정지" in report_nm:
+                    # 거래정지 및 심사 관련 핵심 키워드 정밀 감지
+                    if any(k in report_nm for k in ["거래정지", "매매거래정지", "상장예비심사", "예비심사청구", "조회공시"]):
+                        # 단, 조회공시의 경우 답변이 나왔거나 해제된 경우가 아닐 때만 정지로 보되, 안전하게 정지 처리
                         status = "거래정지"
+                        is_suspended = True
                         break
                     elif "합병철회" in report_nm or "합병의 철회" in report_nm:
                         status = "합병철회"
@@ -98,15 +100,15 @@ def check_market_and_dart_status(code, corp_code):
                     elif "합병종료" in report_nm or "합병승인" in report_nm:
                         status = "합병승인"
                         break
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"DART API error for {code}: {e}")
 
     return current_price, is_suspended, status
 
-def fetch_dart_spac_terms(ipo_price=2000):
+def fetch_dart_spac_terms():
     return {
-        "ipo_price": ipo_price,
-        "ipo_amount": ipo_price * 5_000_000,
+        "ipo_price": 2000,
+        "ipo_amount": 2000 * 5_000_000,
         "deposit_ratio": 1.00,
         "deposit_rate": 0.032,
         "ipo_shares": 5_000_000
@@ -125,6 +127,7 @@ def calculate_spac_metrics(spac_info):
     ipo_shares = spac_info["ipo_shares"]
     current_price = spac_info["current_price"]
     merger_status = spac_info.get("merger_status", "정상")
+    is_suspended = spac_info.get("is_suspended", False)
 
     principal = ipo_amount * deposit_ratio
     after_tax_rate = deposit_rate * (1 - 0.154)
@@ -134,7 +137,7 @@ def calculate_spac_metrics(spac_info):
     invest_type = "합병" if days_to_delisting >= 365 else "청산"
 
     holding_days = max(1, days_to_delisting + 30)
-    if current_price > 0 and merger_status != "거래정지":
+    if current_price > 0 and not is_suspended and merger_status != "거래정지":
         raw_yield_isa = ((liquidation_price - current_price) / current_price) / holding_days * 365
         yield_isa = round(raw_yield_isa * 100, 2)
 
@@ -147,7 +150,7 @@ def calculate_spac_metrics(spac_info):
         yield_general = 0.0
 
     fair_buy_price = ipo_price + ((liquidation_price - ipo_price) / 1095.0) * days_since_listing
-    is_fair_buy = "O" if (current_price > 0 and merger_status != "거래정지" and fair_buy_price >= current_price) else "X"
+    is_fair_buy = "O" if (current_price > 0 and not is_suspended and merger_status != "거래정지" and fair_buy_price >= current_price) else "X"
 
     return {
         "code": spac_info["code"],
