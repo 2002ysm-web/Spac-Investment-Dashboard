@@ -14,7 +14,6 @@
             <div>
                 <div class="flex items-center gap-3 flex-wrap">
                     <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">🚀 SPAC Investment Dashboard</h1>
-                    <!-- 기준 예금금리 표시 뱃지 -->
                     <span id="deposit-rate-badge" class="bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
                         기준 예금금리: 연 --%
                     </span>
@@ -26,65 +25,71 @@
             </div>
         </div>
 
-        <!-- Recommendations Section -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <!-- 합병형 추천 카드 -->
-            <div class="bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-900 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden border border-indigo-500/20">
-                <div class="absolute top-4 right-4 bg-indigo-500/30 text-indigo-200 text-xs px-3 py-1 rounded-full font-semibold">합병형 TOP 추천</div>
-                <p class="text-xs uppercase tracking-wider text-indigo-300 font-bold mb-1">MERGER TYPE BEST</p>
-                <h2 id="rec-merger-name" class="text-2xl font-bold mb-4 tracking-tight">-</h2>
-                <div class="grid grid-cols-3 gap-3 text-sm bg-white/5 p-4 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <div>
-                        <p class="text-xs text-indigo-300 font-medium">현재가</p>
-                        <p id="rec-merger-price" class="font-bold text-base mt-0.5">-</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-indigo-300 font-medium">예상수익률(ISA)</p>
-                        <p id="rec-merger-yield" class="font-bold text-emerald-400 text-base mt-0.5">-</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-indigo-300 font-medium">청산단가</p>
-                        <p id="rec-merger-liq" class="font-bold text-base mt-0.5">-</p>
-                    </div>
+        <!-- Recommendations Section (합병형 2개, 청산형 2개) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <!-- 1. 합병형 (예금 이상) -->
+            <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-5 rounded-2xl shadow-md relative overflow-hidden border border-indigo-500/20">
+                <span class="absolute top-3 right-3 bg-indigo-500/30 text-indigo-200 text-[10px] px-2 py-0.5 rounded-full font-semibold">합병형 · 예금이상</span>
+                <p class="text-[11px] uppercase tracking-wider text-indigo-300 font-bold mb-1">MERGER (ABOVE)</p>
+                <h3 id="rec-merger-high-name" class="text-lg font-bold mb-3 tracking-tight truncate">-</h3>
+                <div class="space-y-1.5 text-xs bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
+                    <div class="flex justify-between"><span class="text-indigo-300">현재가</span><span id="rec-merger-high-price" class="font-bold">-</span></div>
+                    <div class="flex justify-between"><span class="text-indigo-300">수익률(ISA)</span><span id="rec-merger-high-yield" class="font-bold text-emerald-400">-</span></div>
+                    <div class="flex justify-between"><span class="text-indigo-300">청산가</span><span id="rec-merger-high-liq" class="font-bold">-</span></div>
                 </div>
             </div>
 
-            <!-- 청산형 추천 카드 -->
-            <div class="bg-gradient-to-br from-blue-900 via-slate-900 to-slate-900 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden border border-blue-500/20">
-                <div class="absolute top-4 right-4 bg-blue-500/30 text-blue-200 text-xs px-3 py-1 rounded-full font-semibold">청산형 TOP 추천</div>
-                <p class="text-xs uppercase tracking-wider text-blue-300 font-bold mb-1">LIQUIDATION TYPE BEST</p>
-                <h2 id="rec-liq-name" class="text-2xl font-bold mb-4 tracking-tight">-</h2>
-                <div class="grid grid-cols-3 gap-3 text-sm bg-white/5 p-4 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <div>
-                        <p class="text-xs text-blue-300 font-medium">현재가</p>
-                        <p id="rec-liq-price" class="font-bold text-base mt-0.5">-</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-blue-300 font-medium">예상수익률(ISA)</p>
-                        <p id="rec-liq-yield" class="font-bold text-emerald-400 text-base mt-0.5">-</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-blue-300 font-medium">청산단가</p>
-                        <p id="rec-liq-liq" class="font-bold text-base mt-0.5">-</p>
-                    </div>
+            <!-- 2. 합병형 (0% 이상 ~ 예금 미만) -->
+            <div class="bg-gradient-to-br from-indigo-950 to-slate-900 text-white p-5 rounded-2xl shadow-md relative overflow-hidden border border-indigo-500/20">
+                <span class="absolute top-3 right-3 bg-indigo-500/30 text-indigo-200 text-[10px] px-2 py-0.5 rounded-full font-semibold">합병형 · 0%~예금미만</span>
+                <p class="text-[11px] uppercase tracking-wider text-indigo-300 font-bold mb-1">MERGER (MID)</p>
+                <h3 id="rec-merger-mid-name" class="text-lg font-bold mb-3 tracking-tight truncate">-</h3>
+                <div class="space-y-1.5 text-xs bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
+                    <div class="flex justify-between"><span class="text-indigo-300">현재가</span><span id="rec-merger-mid-price" class="font-bold">-</span></div>
+                    <div class="flex justify-between"><span class="text-indigo-300">수익률(ISA)</span><span id="rec-merger-mid-yield" class="font-bold text-emerald-400">-</span></div>
+                    <div class="flex justify-between"><span class="text-indigo-300">청산가</span><span id="rec-merger-mid-liq" class="font-bold">-</span></div>
+                </div>
+            </div>
+
+            <!-- 3. 청산형 (예금 이상) -->
+            <div class="bg-gradient-to-br from-blue-900 to-slate-900 text-white p-5 rounded-2xl shadow-md relative overflow-hidden border border-blue-500/20">
+                <span class="absolute top-3 right-3 bg-blue-500/30 text-blue-200 text-[10px] px-2 py-0.5 rounded-full font-semibold">청산형 · 예금이상</span>
+                <p class="text-[11px] uppercase tracking-wider text-blue-300 font-bold mb-1">LIQUIDATION (ABOVE)</p>
+                <h3 id="rec-liq-high-name" class="text-lg font-bold mb-3 tracking-tight truncate">-</h3>
+                <div class="space-y-1.5 text-xs bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
+                    <div class="flex justify-between"><span class="text-blue-300">현재가</span><span id="rec-liq-high-price" class="font-bold">-</span></div>
+                    <div class="flex justify-between"><span class="text-blue-300">수익률(ISA)</span><span id="rec-liq-high-yield" class="font-bold text-emerald-400">-</span></div>
+                    <div class="flex justify-between"><span class="text-blue-300">청산가</span><span id="rec-liq-high-liq" class="font-bold">-</span></div>
+                </div>
+            </div>
+
+            <!-- 4. 청산형 (0% 이상 ~ 예금 미만) -->
+            <div class="bg-gradient-to-br from-blue-950 to-slate-900 text-white p-5 rounded-2xl shadow-md relative overflow-hidden border border-blue-500/20">
+                <span class="absolute top-3 right-3 bg-blue-500/30 text-blue-200 text-[10px] px-2 py-0.5 rounded-full font-semibold">청산형 · 0%~예금미만</span>
+                <p class="text-[11px] uppercase tracking-wider text-blue-300 font-bold mb-1">LIQUIDATION (MID)</p>
+                <h3 id="rec-liq-mid-name" class="text-lg font-bold mb-3 tracking-tight truncate">-</h3>
+                <div class="space-y-1.5 text-xs bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
+                    <div class="flex justify-between"><span class="text-blue-300">현재가</span><span id="rec-liq-mid-price" class="font-bold">-</span></div>
+                    <div class="flex justify-between"><span class="text-blue-300">수익률(ISA)</span><span id="rec-liq-mid-yield" class="font-bold text-emerald-400">-</span></div>
+                    <div class="flex justify-between"><span class="text-blue-300">청산가</span><span id="rec-liq-mid-liq" class="font-bold">-</span></div>
                 </div>
             </div>
         </div>
 
         <!-- Filters & Search Bar -->
         <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-center">
-            <!-- 1. 투자유형 -->
+            <!-- 1. 유형 -->
             <div>
-                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">투자유형</label>
+                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">유형</label>
                 <select id="filter-type" onchange="applyFilters()" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium text-slate-700">
                     <option value="all">전체</option>
                     <option value="합병">합병</option>
                     <option value="청산">청산</option>
                 </select>
             </div>
-            <!-- 2. 매수적정 -->
+            <!-- 2. 매수 -->
             <div>
-                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">매수적정</label>
+                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">매수</label>
                 <select id="filter-fair" onchange="applyFilters()" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium text-slate-700">
                     <option value="all">전체</option>
                     <option value="O">O</option>
@@ -100,12 +105,12 @@
                     <option value="거래정지">정지</option>
                 </select>
             </div>
-            <!-- 4. 투자계좌 (ISA / 일반) -->
+            <!-- 4. 일반 (투자계좌) -->
             <div>
-                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">투자계좌</label>
+                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">일반</label>
                 <select id="filter-account" onchange="applyFilters()" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium text-slate-700">
                     <option value="isa" selected>ISA</option>
-                    <option value="general">일반계좌</option>
+                    <option value="general">일반</option>
                 </select>
             </div>
             <!-- 5. 예상수익률 구간 필터 -->
@@ -113,8 +118,8 @@
                 <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">예상수익률</label>
                 <select id="filter-yield-range" onchange="applyFilters()" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium text-slate-700">
                     <option value="all" selected>전체 출력</option>
-                    <option value="above_deposit">예금금리 이상</option>
-                    <option value="low_positive">0% 이상 ~ 예금금리 미만</option>
+                    <option value="above_deposit">예금 이상</option>
+                    <option value="low_positive">0% 이상 ~ 예금 미만</option>
                     <option value="negative">마이너스 (&lt;0%)</option>
                 </select>
             </div>
@@ -130,14 +135,14 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-100/70 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
+                        <tr id="table-header-row" class="bg-slate-100/70 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
                             <th class="py-4 px-6 font-bold">종목명</th>
                             <th class="py-4 px-6 font-bold">현재가</th>
-                            <th class="py-4 px-6 font-bold">청산단가</th>
-                            <th class="py-4 px-6 font-bold">매수적정</th>
-                            <th class="py-4 px-6 font-bold">투자유형</th>
-                            <th class="py-4 px-6 font-bold">예상수익률 (일반)</th>
-                            <th class="py-4 px-6 font-bold">예상수익률 (ISA)</th>
+                            <th class="py-4 px-6 font-bold">청산가</th>
+                            <th class="py-4 px-6 font-bold">매수</th>
+                            <th class="py-4 px-6 font-bold">유형</th>
+                            <!-- 동적 수익률 헤더 -->
+                            <th id="yield-header-col" class="py-4 px-6 font-bold">예상수익률 (ISA)</th>
                             <th class="py-4 px-6 font-bold">상태</th>
                         </tr>
                     </thead>
@@ -160,7 +165,6 @@
                 document.getElementById('update-time').innerText = `최종 갱신: ${data.updated_at}`;
                 allItems = data.items;
 
-                // 상단 헤더에 기준 예금금리 표시 (첫 번째 종목의 deposit_rate 활용)
                 if (allItems.length > 0 && allItems[0].deposit_rate) {
                     document.getElementById('deposit-rate-badge').innerText = `기준 예금금리: 연 ${allItems[0].deposit_rate}%`;
                 }
@@ -176,36 +180,48 @@
 
         function updateRecommendations(items) {
             const validItems = items.filter(i => i.is_fair_buy === 'O' && i.status === '정상');
+            const depositRate = items.length > 0 && items[0].deposit_rate ? items[0].deposit_rate : 3.2;
 
-            const mergerItems = validItems.filter(i => i.invest_type === '합병').sort((a, b) => b.yield_isa - a.yield_isa);
-            if (mergerItems.length > 0) {
-                const bestM = mergerItems[0];
-                document.getElementById('rec-merger-name').innerText = bestM.name;
-                document.getElementById('rec-merger-price').innerText = bestM.current_price.toLocaleString() + '원';
-                document.getElementById('rec-merger-yield').innerText = bestM.yield_isa + '%';
-                document.getElementById('rec-merger-liq').innerText = bestM.liquidation_price.toLocaleString() + '원';
-            } else {
-                document.getElementById('rec-merger-name').innerText = '조건 만족 종목 없음';
-            }
+            // 1. 합병형 - 예금 이상
+            const mergerHigh = validItems.filter(i => i.invest_type === '합병' && i.yield_isa >= depositRate).sort((a, b) => b.yield_isa - a.yield_isa);
+            setCardData('rec-merger-high', mergerHigh[0]);
 
-            const liqItems = validItems.filter(i => i.invest_type === '청산').sort((a, b) => b.yield_isa - a.yield_isa);
-            if (liqItems.length > 0) {
-                const bestL = liqItems[0];
-                document.getElementById('rec-liq-name').innerText = bestL.name;
-                document.getElementById('rec-liq-price').innerText = bestL.current_price.toLocaleString() + '원';
-                document.getElementById('rec-liq-yield').innerText = bestL.yield_isa + '%';
-                document.getElementById('rec-liq-liq').innerText = bestL.liquidation_price.toLocaleString() + '원';
+            // 2. 합병형 - 0% 이상 ~ 예금 미만
+            const mergerMid = validItems.filter(i => i.invest_type === '합병' && i.yield_isa >= 0 && i.yield_isa < depositRate).sort((a, b) => b.yield_isa - a.yield_isa);
+            setCardData('rec-merger-mid', mergerMid[0]);
+
+            // 3. 청산형 - 예금 이상
+            const liqHigh = validItems.filter(i => i.invest_type === '청산' && i.yield_isa >= depositRate).sort((a, b) => b.yield_isa - a.yield_isa);
+            setCardData('rec-liq-high', liqHigh[0]);
+
+            // 4. 청산형 - 0% 이상 ~ 예금 미만
+            const liqMid = validItems.filter(i => i.invest_type === '청산' && i.yield_isa >= 0 && i.yield_isa < depositRate).sort((a, b) => b.yield_isa - a.yield_isa);
+            setCardData('rec-liq-mid', liqMid[0]);
+        }
+
+        function setCardData(prefix, item) {
+            if (item) {
+                document.getElementById(`${prefix}-name`).innerText = item.name;
+                document.getElementById(`${prefix}-price`).innerText = item.current_price.toLocaleString() + '원';
+                document.getElementById(`${prefix}-yield`).innerText = item.yield_isa + '%';
+                document.getElementById(`${prefix}-liq`).innerText = item.liquidation_price.toLocaleString() + '원';
             } else {
-                document.getElementById('rec-liq-name').innerText = '조건 만족 종목 없음';
+                document.getElementById(`${prefix}-name`).innerText = '조건 만족 종목 없음';
+                document.getElementById(`${prefix}-price`).innerText = '-';
+                document.getElementById(`${prefix}-yield`).innerText = '-';
+                document.getElementById(`${prefix}-liq`).innerText = '-';
             }
         }
 
-        function renderTable(items) {
+        function renderTable(items, accountType) {
             const tbody = document.getElementById('spac-table-body');
             tbody.innerHTML = '';
 
+            const yieldHeader = document.getElementById('yield-header-col');
+            yieldHeader.innerText = accountType === 'isa' ? '예상수익률 (ISA)' : '예상수익률 (일반)';
+
             if (items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-400 font-normal">조건에 일치하는 종목이 없습니다.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400 font-normal">조건에 일치하는 종목이 없습니다.</td></tr>`;
                 return;
             }
 
@@ -213,14 +229,16 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50/80 transition-colors";
                 
+                const targetYield = accountType === 'isa' ? item.yield_isa : item.yield_general;
+                const yieldColorClass = targetYield < 0 ? 'text-rose-500 font-bold' : 'text-emerald-600 font-bold';
+
                 tr.innerHTML = `
                     <td class="py-4 px-6 font-bold text-slate-900">${item.name}</td>
                     <td class="py-4 px-6 text-slate-600">${item.current_price > 0 ? item.current_price.toLocaleString() + '원' : '-'}</td>
                     <td class="py-4 px-6 text-slate-600">${item.liquidation_price.toLocaleString()}원</td>
                     <td class="py-4 px-6"><span class="font-bold ${item.is_fair_buy === 'O' ? 'text-indigo-600' : 'text-slate-400'}">${item.is_fair_buy}</span></td>
                     <td class="py-4 px-6"><span class="px-2.5 py-1 text-xs rounded-full font-semibold ${item.invest_type === '합병' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200/50' : 'bg-amber-50 text-amber-700 border border-amber-200/50'}">${item.invest_type}</span></td>
-                    <td class="py-4 px-6 text-slate-700">${item.yield_general}%</td>
-                    <td class="py-4 px-6 font-bold text-emerald-600">${item.yield_isa}%</td>
+                    <td class="py-4 px-6 ${yieldColorClass}">${targetYield}%</td>
                     <td class="py-4 px-6 text-xs"><span class="px-2 py-1 rounded-md ${item.status === '거래정지' ? 'bg-rose-50 text-rose-600 font-bold border border-rose-200' : 'text-slate-500'}">${item.status}</span></td>
                 `;
                 tbody.appendChild(tr);
@@ -257,7 +275,7 @@
                 return yB - yA;
             });
 
-            renderTable(filtered);
+            renderTable(filtered, accountType);
         }
 
         loadSpacData();
