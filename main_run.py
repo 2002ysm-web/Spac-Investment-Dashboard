@@ -92,13 +92,13 @@ def check_market_and_dart_status(code, corp_code):
             is_suspended = True
             status = "정지"
     except Exception:
-        is_suspended = True
-        status = "정지"
+        # 네이버 API 응답 오류 시 보수적으로 정지 처리가 안 되도록 정상 기본값 유지하되 예외 처리
+        pass
 
-    # 2. DART 공시 기반 상태 확인 (정밀 검증 로직)
+    # 2. DART 공시 기반 상태 확인 (조회 기간을 1년으로 늘리고 키워드 검증 강화)
     if DART_API_KEY and corp_code:
         try:
-            bgn_de = (TODAY - timedelta(days=180)).strftime('%Y%m%d')
+            bgn_de = (TODAY - timedelta(days=365)).strftime('%Y%m%d')
             url = f"https://opendart.fss.or.kr/api/list.json?crtfc_key={DART_API_KEY}&corp_code={corp_code}&bgn_de={bgn_de}"
             res = requests.get(url, timeout=5).json()
             if res.get("status") == "000":
@@ -112,20 +112,21 @@ def check_market_and_dart_status(code, corp_code):
                 for r in reports_sorted:
                     report_nm = r.get("report_nm", "")
                     
-                    if any(k in report_nm for k in ["거래정지", "매매거래정지", "상장예비심사"]):
+                    if any(k in report_nm for k in ["거래정지", "매매거래정지", "상장예비심사", "심사청구"]):
                         has_suspended_report = True
-                    if any(k in report_nm for k in ["합병승인", "합병종료", "합병완료", "합병신주상장", "주권상장폐지"]):
+                    if any(k in report_nm for k in ["합병결정", "합병계약", "합병승인", "합병종료", "합병완료", "합병신주상장", "주권상장폐지"]):
                         has_merger_approved = True
                     if any(k in report_nm for k in ["합병철회", "합병의 철회"]):
                         has_withdrawn = True
 
                 if has_withdrawn:
                     status = "정상"
-                elif has_merger_approved and not has_suspended_report:
-                    status = "합병"
+                    is_suspended = False
                 elif has_suspended_report or is_suspended:
                     status = "정지"
                     is_suspended = True
+                elif has_merger_approved:
+                    status = "합병"
         except Exception as e:
             print(f"DART API error for {code}: {e}")
 
