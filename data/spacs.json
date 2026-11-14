@@ -1,21 +1,7 @@
 {
-  "updated_at": "2026-11-14 08:43:22",
+  "updated_at": "2026-11-14 08:56:49",
   "count": 69,
   "items": [
-    {
-      "code": "468760",
-      "name": "유진스팩10호",
-      "is_fair_buy": "O",
-      "invest_type": "청산",
-      "delisting_date": "2027-02-28",
-      "current_price": 2080,
-      "liquidation_price": 2167,
-      "yield_general": 9.5,
-      "yield_isa": 11.23,
-      "deposit_rate": 3.2,
-      "status": "정상",
-      "fair_price_calc": 2151
-    },
     {
       "code": "477470",
       "name": "미래에셋비전스팩5호",
@@ -99,20 +85,6 @@
       "deposit_rate": 3.2,
       "status": "정상",
       "fair_price_calc": 2143
-    },
-    {
-      "code": "474660",
-      "name": "신한제12호스팩",
-      "is_fair_buy": "O",
-      "invest_type": "청산",
-      "delisting_date": "2027-04-15",
-      "current_price": 2095,
-      "liquidation_price": 2167,
-      "yield_general": 5.83,
-      "yield_isa": 6.89,
-      "deposit_rate": 3.2,
-      "status": "정상",
-      "fair_price_calc": 2144
     },
     {
       "code": "486630",
@@ -253,34 +225,6 @@
       "deposit_rate": 3.2,
       "status": "정상",
       "fair_price_calc": 2121
-    },
-    {
-      "code": "482520",
-      "name": "교보16호스팩",
-      "is_fair_buy": "O",
-      "invest_type": "청산",
-      "delisting_date": "2027-08-13",
-      "current_price": 2065,
-      "liquidation_price": 2167,
-      "yield_general": 5.05,
-      "yield_isa": 5.97,
-      "deposit_rate": 3.2,
-      "status": "정상",
-      "fair_price_calc": 2126
-    },
-    {
-      "code": "477760",
-      "name": "디비금융스팩12호",
-      "is_fair_buy": "O",
-      "invest_type": "청산",
-      "delisting_date": "2027-06-18",
-      "current_price": 2085,
-      "liquidation_price": 2167,
-      "yield_general": 4.94,
-      "yield_isa": 5.84,
-      "deposit_rate": 3.2,
-      "status": "정상",
-      "fair_price_calc": 2134
     },
     {
       "code": "484130",
@@ -934,10 +878,10 @@
       "delisting_date": "2027-12-20",
       "current_price": 2195,
       "liquidation_price": 2167,
-      "yield_general": -1.08,
-      "yield_isa": -1.08,
+      "yield_general": 0.0,
+      "yield_isa": 0.0,
       "deposit_rate": 3.2,
-      "status": "정상",
+      "status": "거래정지",
       "fair_price_calc": 2106
     },
     {
@@ -948,11 +892,67 @@
       "delisting_date": "2027-12-11",
       "current_price": 2200,
       "liquidation_price": 2167,
-      "yield_general": -1.3,
-      "yield_isa": -1.3,
+      "yield_general": 0.0,
+      "yield_isa": 0.0,
       "deposit_rate": 3.2,
-      "status": "정상",
+      "status": "거래정지",
       "fair_price_calc": 2107
+    },
+    {
+      "code": "482520",
+      "name": "교보16호스팩",
+      "is_fair_buy": "X",
+      "invest_type": "청산",
+      "delisting_date": "2027-08-13",
+      "current_price": 2065,
+      "liquidation_price": 2167,
+      "yield_general": 0.0,
+      "yield_isa": 0.0,
+      "deposit_rate": 3.2,
+      "status": "거래정지",
+      "fair_price_calc": 2126
+    },
+    {
+      "code": "477760",
+      "name": "디비금융스팩12호",
+      "is_fair_buy": "X",
+      "invest_type": "청산",
+      "delisting_date": "2027-06-18",
+      "current_price": 2085,
+      "liquidation_price": 2167,
+      "yield_general": 0.0,
+      "yield_isa": 0.0,
+      "deposit_rate": 3.2,
+      "status": "거래정지",
+      "fair_price_calc": 2134
+    },
+    {
+      "code": "474660",
+      "name": "신한제12호스팩",
+      "is_fair_buy": "X",
+      "invest_type": "청산",
+      "delisting_date": "2027-04-15",
+      "current_price": 2095,
+      "liquidation_price": 2167,
+      "yield_general": 0.0,
+      "yield_isa": 0.0,
+      "deposit_rate": 3.2,
+      "status": "거래정지",
+      "fair_price_calc": 2144
+    },
+    {
+      "code": "468760",
+      "name": "유진스팩10호",
+      "is_fair_buy": "X",
+      "invest_type": "청산",
+      "delisting_date": "2027-02-28",
+      "current_price": 2080,
+      "liquidation_price": 2167,
+      "yield_general": 0.0,
+      "yield_isa": 0.0,
+      "deposit_rate": 3.2,
+      "status": "거래정지",
+      "fair_price_calc": 2151
     },
     {
       "code": "469480",
