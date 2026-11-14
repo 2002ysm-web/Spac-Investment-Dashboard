@@ -67,38 +67,39 @@
 
         <!-- Filters & Search Bar -->
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
-            <!-- 투자 유형 -->
+            <!-- 1. 투자유형 -->
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">투자 유형</label>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">투자유형</label>
                 <select id="filter-type" onchange="applyFilters()" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 bg-white">
-                    <option value="all">전체 (합병/청산)</option>
-                    <option value="합병">합병형</option>
-                    <option value="청산">청산형</option>
+                    <option value="all">전체</option>
+                    <option value="합병">합병</option>
+                    <option value="청산">청산</option>
                 </select>
             </div>
-            <!-- 매수 적정 -->
+            <!-- 2. 매수적정 -->
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">매수 적정 여부</label>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">매수적정</label>
                 <select id="filter-fair" onchange="applyFilters()" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 bg-white">
-                    <option value="all">전체 (O/X)</option>
-                    <option value="O">매수적정 (O)</option>
-                    <option value="X">매수부적정 (X)</option>
+                    <option value="all">전체</option>
+                    <option value="O">O</option>
+                    <option value="X">X</option>
                 </select>
             </div>
-            <!-- 거래 상태 -->
+            <!-- 3. 거래상태 -->
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">거래 상태</label>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">거래상태</label>
                 <select id="filter-status" onchange="applyFilters()" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 bg-white">
-                    <option value="all">전체 상태</option>
-                    <option value="정상" selected>정상 거래</option>
-                    <option value="거래정지">거래정지</option>
+                    <option value="all">전체</option>
+                    <option value="정상" selected>정상</option>
+                    <option value="거래정지">정지</option>
                 </select>
             </div>
-            <!-- 예상 수익률 기준 선택 -->
+            <!-- 4. 예상수익률 -->
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">예상 수익률 기준</label>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">예상수익률</label>
                 <select id="filter-yield-type" onchange="applyFilters()" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 bg-white">
-                    <option value="isa">ISA</option>
+                    <option value="all">전체</option>
+                    <option value="isa" selected>ISA</option>
                     <option value="general">일반</option>
                 </select>
             </div>
@@ -154,10 +155,8 @@
         }
 
         function updateRecommendations(items) {
-            // 조건: 매수적정 O 이면서 거래상태 정상인 종목들 대상
             const validItems = items.filter(i => i.is_fair_buy === 'O' && i.status === '정상');
 
-            // 합병형 중 ISA 수익률 가장 높은 종목
             const mergerItems = validItems.filter(i => i.invest_type === '합병').sort((a, b) => b.yield_isa - a.yield_isa);
             if (mergerItems.length > 0) {
                 const bestM = mergerItems[0];
@@ -169,7 +168,6 @@
                 document.getElementById('rec-merger-name').innerText = '조건 만족 종목 없음';
             }
 
-            // 청산형 중 ISA 수익률 가장 높은 종목
             const liqItems = validItems.filter(i => i.invest_type === '청산').sort((a, b) => b.yield_isa - a.yield_isa);
             if (liqItems.length > 0) {
                 const bestL = liqItems[0];
@@ -224,10 +222,9 @@
                 return true;
             });
 
-            // 선택한 예상 수익률 기준(ISA 또는 일반)으로 내림차순 정렬
             filtered.sort((a, b) => {
-                if (yieldType === 'isa') return b.yield_isa - a.yield_isa;
-                return b.yield_general - a.yield_general;
+                if (yieldType === 'general') return b.yield_general - a.yield_general;
+                return b.yield_isa - a.yield_isa; // 'all' 이나 'isa'인 경우 기본 ISA 기준 정렬
             });
 
             renderTable(filtered);
