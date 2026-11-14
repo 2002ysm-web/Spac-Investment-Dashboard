@@ -14,7 +14,6 @@ KRX_OPENAPI_KEY = os.environ.get("KRX_OPENAPI_KEY", "")
 TODAY = dt.now().date()
 
 def get_dart_corp_codes():
-    """DART에서 전체 법인코드(corp_code)와 상장 주식코드(stock_code) 매핑 딕셔너리 생성"""
     mapping = {}
     if not DART_API_KEY:
         return mapping
@@ -57,52 +56,59 @@ def get_krx_spac_list():
         print(f"KRX error: {e}")
     return spacs
 
-def get_market_price_and_status(code):
-    current_price = 0
+def check_market_and_dart_status(code, corp_code):
+    status = "정상"
     is_suspended = False
-    merger_status = "정상"
+    current_price = 0
+
+    # 1. 네이버 금융 실시간 시세 및 거래정지 여부 확인
     try:
         url = f"https://polling.finance.naver.com/api/realtime?query=SERVICE_ITEM:{code}"
         res = requests.get(url, timeout=10).json()
         datas = res["result"]["areas"][0]["datas"][0]
         current_price = int(datas.get("nv", 0))
         ms = str(datas.get("ms", ""))
-        
         if ms in ["STOP", "HALT", "SUSPENSION"] or current_price == 0:
             is_suspended = True
-            merger_status = "거래정지"
+            status = "거래정지"
     except Exception:
         is_suspended = True
-        merger_status = "거래정지"
-        
-    return current_price, is_suspended, merger_status
+        status = "거래정지"
 
-def fetch_dart_spac_terms(corp_code):
-    """DART 공시에서 신탁예탁금 및 이자율 정보 추출 (기본 공모가 2000원, 기본 이자율 3.2% 연동)"""
-    ipo_price = 2000
-    deposit_rate = 0.032  # 기본 예치이자율 (3.2%)
-    
-    if not DART_API_KEY or not corp_code:
-        return {"ipo_price": ipo_price, "deposit_rate": deposit_rate, "ipo_amount": ipo_price * 5_000_000}
+    # 2. DART 공시 기반 상태 확인 (최신 접수일자 순 정렬 후 반영)
+    if DART_API_KEY and corp_code and not is_suspended:
+        try:
+            bgn_de = (TODAY - timedelta(days=365)).strftime('%Y%m%d')
+            url = f"https://opendart.fss.or.kr/api/list.json?crtfc_key={DART_API_KEY}&corp_code={corp_code}&bgn_de={bgn_de}&pblntf_ty=A"
+            res = requests.get(url, timeout=5).json()
+            if res.get("status") == "000":
+                reports = res.get("list", [])
+                # 접수일자(rcept_dt) 기준 내림차순(최신순) 정렬
+                reports_sorted = sorted(reports, key=lambda x: x.get("rcept_dt", ""), reverse=True)
+                
+                for r in reports_sorted:
+                    report_nm = r.get("report_nm", "")
+                    # 최신순으로 스캔하므로 가장 먼저 매칭되는 결정적 공시가 최종 상태가 됨
+                    if "매매거래정지" in report_nm:
+                        status = "거래정지"
+                        break
+                    elif "합병철회" in report_nm or "합병의 철회" in report_nm:
+                        status = "합병철회"
+                        break
+                    elif "합병종료" in report_nm or "합병승인" in report_nm:
+                        status = "합병승인"
+                        break
+        except Exception:
+            pass
 
-    try:
-        # 최근 1년 내 증권신고서(지분증권) 공시 검색
-        url = f"https://opendart.fss.or.kr/api/list.json?crtfc_key={DART_API_KEY}&corp_code={corp_code}&bgn_de={(TODAY - timedelta(days=365)).strftime('%Y%m%d')}&pblntf_ty=A"
-        res = requests.get(url, timeout=5).json()
-        if res.get("status") == "000":
-            reports = res.get("list", [])
-            for r in reports:
-                if "증권신고서" in r.get("report_nm", ""):
-                    # 필요시 해당 보고서 본문(document)에서 예치이자율 키워드 파싱 로직 확장 가능
-                    break
-    except Exception:
-        pass
+    return current_price, is_suspended, status
 
+def fetch_dart_spac_terms(ipo_price=2000):
     return {
         "ipo_price": ipo_price,
         "ipo_amount": ipo_price * 5_000_000,
         "deposit_ratio": 1.00,
-        "deposit_rate": deposit_rate,
+        "deposit_rate": 0.032,
         "ipo_shares": 5_000_000
     }
 
@@ -210,8 +216,8 @@ def main():
         code = sp["code"]
         corp_code = corp_mapping.get(code, None)
         
-        cur_price, is_susp, status = get_market_price_and_status(code)
-        terms = fetch_dart_spac_terms(corp_code)
+        cur_price, is_susp, status = check_market_and_dart_status(code, corp_code)
+        terms = fetch_dart_spac_terms()
         
         merged = {**sp, **terms, "current_price": cur_price, "is_suspended": is_susp, "merger_status": status}
         calc_row = calculate_spac_metrics(merged)
