@@ -95,7 +95,7 @@ def check_market_and_dart_status(code, corp_code):
         is_suspended = True
         status = "정지"
 
-    # 2. DART 공시 기반 상태 확인 (최신 공시 기준 엄격 분리)
+    # 2. DART 공시 기반 상태 확인 (정밀 검증 로직)
     if DART_API_KEY and corp_code:
         try:
             bgn_de = (TODAY - timedelta(days=180)).strftime('%Y%m%d')
@@ -105,21 +105,27 @@ def check_market_and_dart_status(code, corp_code):
                 reports = res.get("list", [])
                 reports_sorted = sorted(reports, key=lambda x: x.get("rcept_dt", ""), reverse=True)
                 
-                if reports_sorted:
-                    latest_report = reports_sorted[0]
-                    report_nm = latest_report.get("report_nm", "")
+                has_merger_approved = False
+                has_withdrawn = False
+                has_suspended_report = False
+
+                for r in reports_sorted:
+                    report_nm = r.get("report_nm", "")
                     
-                    # 거래정지 관련 키워드가 최신 공시면 무조건 [정지]
                     if any(k in report_nm for k in ["거래정지", "매매거래정지", "상장예비심사"]):
-                        status = "정지"
-                        is_suspended = True
-                    # 오직 공식적인 최종 합병 승인/종료 공시일 때만 [합병]
-                    elif any(k in report_nm for k in ["합병승인", "합병종료", "합병완료", "합병신주상장", "주권상장폐지"]):
-                        status = "합병"
-                    elif any(k in report_nm for k in ["합병철회", "합병의 철회"]):
-                        status = "정상"
-                    elif is_suspended:
-                        status = "정지"
+                        has_suspended_report = True
+                    if any(k in report_nm for k in ["합병승인", "합병종료", "합병완료", "합병신주상장", "주권상장폐지"]):
+                        has_merger_approved = True
+                    if any(k in report_nm for k in ["합병철회", "합병의 철회"]):
+                        has_withdrawn = True
+
+                if has_withdrawn:
+                    status = "정상"
+                elif has_merger_approved and not has_suspended_report:
+                    status = "합병"
+                elif has_suspended_report or is_suspended:
+                    status = "정지"
+                    is_suspended = True
         except Exception as e:
             print(f"DART API error for {code}: {e}")
 
