@@ -45,11 +45,13 @@ def get_market_price_and_status(code):
         res = requests.get(url, timeout=10).json()
         datas = res["result"]["areas"][0]["datas"][0]
         current_price = int(datas.get("nv", 0))
-        if datas.get("ms") in ["STOP", "HALT"]:
+        ms = datas.get("ms", "")
+        if ms in ["STOP", "HALT"] or current_price == 0:
             is_suspended = True
             merger_status = "거래정지"
     except Exception:
-        pass
+        is_suspended = True
+        merger_status = "거래정지"
     return current_price, is_suspended, merger_status
 
 def fetch_dart_spac_terms(corp_code, ipo_price=2000):
@@ -161,7 +163,8 @@ def main():
 
     for sp in raw_spacs:
         cur_price, is_susp, status = get_market_price_and_status(sp["code"])
-        if cur_price == 0:
+        # 거래 정지 종목이거나 가격이 0원인 경우 제외 처리
+        if cur_price == 0 or is_susp:
             continue
         terms = fetch_dart_spac_terms(corp_code=None, ipo_price=2000)
         merged = {**sp, **terms, "current_price": cur_price, "is_suspended": is_susp, "merger_status": status}
