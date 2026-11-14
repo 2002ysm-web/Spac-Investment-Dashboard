@@ -25,15 +25,15 @@
             </div>
         </div>
 
-        <!-- Recommendations Section (합병형 4개, 청산형 4개 - 한 줄에 좌우 1개씩 총 2줄 배치) -->
+        <!-- Recommendations Section (합병형 4개, 청산형 4개 - 완벽한 2x2 그리드 배치) -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-            <!-- 1. 합병형 TOP 추천 (4개 카드: 2줄 x 좌우 2개씩) -->
+            <!-- 1. 합병형 TOP 추천 (2x2 그리드) -->
             <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-900 text-white p-6 rounded-2xl shadow-lg border border-indigo-500/25">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-base font-bold tracking-tight text-indigo-200">🤝 합병형 TOP 추천</h2>
-                    <span class="text-[11px] bg-indigo-500/30 text-indigo-300 px-2.5 py-1 rounded-full font-semibold">MERGER 4 CARDS</span>
+                    <span class="text-[11px] bg-indigo-500/30 text-indigo-300 px-2.5 py-1 rounded-full font-semibold">MERGER 2x2</span>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                     <!-- 1. 예금 이상 (ISA) -->
                     <div class="bg-white/5 p-3.5 rounded-xl border border-white/10 flex flex-col justify-between">
                         <div>
@@ -85,13 +85,13 @@
                 </div>
             </div>
 
-            <!-- 2. 청산형 TOP 추천 (4개 카드: 2줄 x 좌우 2개씩) -->
+            <!-- 2. 청산형 TOP 추천 (2x2 그리드) -->
             <div class="bg-gradient-to-br from-blue-950 via-slate-900 to-slate-900 text-white p-6 rounded-2xl shadow-lg border border-blue-500/25">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-base font-bold tracking-tight text-blue-200">🛡️ 청산형 TOP 추천</h2>
-                    <span class="text-[11px] bg-blue-500/30 text-blue-300 px-2.5 py-1 rounded-full font-semibold">LIQUIDATION 4 CARDS</span>
+                    <span class="text-[11px] bg-blue-500/30 text-blue-300 px-2.5 py-1 rounded-full font-semibold">LIQUIDATION 2x2</span>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                     <!-- 1. 예금 이상 (ISA) -->
                     <div class="bg-white/5 p-3.5 rounded-xl border border-white/10 flex flex-col justify-between">
                         <div>
@@ -249,9 +249,7 @@
             const validItems = items.filter(i => i.is_fair_buy === 'O' && i.status === '정상');
             const depositRate = items.length > 0 && items[0].deposit_rate ? items[0].deposit_rate : 3.2;
 
-            // 1. 합병형 추천 채우기 (예금이상 ISA, 예금이상 일반, 0%~미만 ISA, 0%~미만 일반)
             const mergerItems = validItems.filter(i => i.invest_type === '합병');
-            
             const mHighIsa = mergerItems.filter(i => i.yield_isa >= depositRate).sort((a, b) => b.yield_isa - a.yield_isa);
             const mHighGen = mergerItems.filter(i => i.yield_general >= depositRate).sort((a, b) => b.yield_general - a.yield_general);
             const mMidIsa = mergerItems.filter(i => i.yield_isa >= 0 && i.yield_isa < depositRate).sort((a, b) => b.yield_isa - a.yield_isa);
@@ -262,9 +260,7 @@
             setCardData('rec-merger-mid-isa', mMidIsa[0], 'isa');
             setCardData('rec-merger-mid-gen', mMidGen[0], 'general');
 
-            // 2. 청산형 추천 채우기 (예금이상 ISA, 예금이상 일반, 0%~미만 ISA, 0%~미만 일반)
             const liqItems = validItems.filter(i => i.invest_type === '청산');
-
             const lHighIsa = liqItems.filter(i => i.yield_isa >= depositRate).sort((a, b) => b.yield_isa - a.yield_isa);
             const lHighGen = liqItems.filter(i => i.yield_general >= depositRate).sort((a, b) => b.yield_general - a.yield_general);
             const lMidIsa = liqItems.filter(i => i.yield_isa >= 0 && i.yield_isa < depositRate).sort((a, b) => b.yield_isa - a.yield_isa);
@@ -335,7 +331,6 @@
             const yieldRange = document.getElementById('filter-yield-range').value;
             const searchQuery = document.getElementById('search-input').value.toLowerCase();
 
-            // 상단 8개 추천 카드 상시 갱신
             updateRecommendations(allItems);
 
             let filtered = allItems.filter(item => {
