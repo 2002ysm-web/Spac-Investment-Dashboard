@@ -95,7 +95,7 @@ def check_market_and_dart_status(code, corp_code):
         is_suspended = True
         status = "정지"
 
-    # 2. DART 공시 기반 상태 확인 (합병 진행/심사/승인 및 거래정지 여부 정밀 판정)
+    # 2. DART 공시 기반 상태 확인 (가장 최신 공시 1건을 기준으로 상태 확정)
     if DART_API_KEY and corp_code:
         try:
             bgn_de = (TODAY - timedelta(days=180)).strftime('%Y%m%d')
@@ -105,19 +105,19 @@ def check_market_and_dart_status(code, corp_code):
                 reports = res.get("list", [])
                 reports_sorted = sorted(reports, key=lambda x: x.get("rcept_dt", ""), reverse=True)
                 
-                for r in reports_sorted:
-                    report_nm = r.get("report_nm", "")
+                if reports_sorted:
+                    latest_report = reports_sorted[0]
+                    report_nm = latest_report.get("report_nm", "")
+                    
                     if any(k in report_nm for k in ["거래정지", "매매거래정지"]):
                         status = "정지"
                         is_suspended = True
-                        break
-                    # 합병 관련 심사, 승인, 주요사항보고서(합병결정) 등이 감지되면 '합병' 상태로 분류
-                    elif any(k in report_nm for k in ["상장예비심사", "합병결정", "합병승인", "합병종료", "합병완료", "합병신주상장", "주권상장폐지"]):
+                    elif any(k in report_nm for k in ["합병승인", "합병종료", "합병완료", "합병신주상장", "주권상장폐지"]):
                         status = "합병"
-                        break
-                    elif "합병철회" in report_nm or "합병의 철회" in report_nm:
+                    elif any(k in report_nm for k in ["합병철회", "합병의 철회"]):
                         status = "정상"
-                        break
+                    elif is_suspended:
+                        status = "정지"
         except Exception as e:
             print(f"DART API error for {code}: {e}")
 
