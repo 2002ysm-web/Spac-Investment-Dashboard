@@ -23,7 +23,7 @@
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <h3 class="text-sm font-medium text-gray-500">총 모니터링 스팩</h3>
+                <h3 class="text-sm font-medium text-gray-500">정상 모니터링 스팩</h3>
                 <p id="total-count" class="text-2xl font-bold text-slate-700 mt-2">-</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -36,6 +36,19 @@
             </div>
         </div>
 
+        <!-- Filters & Search Bar -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row justify-between gap-4 items-center">
+            <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                <button onclick="filterTable('all')" id="btn-all" class="px-4 py-2 text-sm font-medium rounded-lg bg-slate-800 text-white transition-colors">전체 보기</button>
+                <button onclick="filterTable('fair')" id="btn-fair" class="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">매수적정 (O)</button>
+                <button onclick="filterTable('liquidation')" id="btn-liquidation" class="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">청산형</button>
+                <button onclick="filterTable('merger')" id="btn-merger" class="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">합병형</button>
+            </div>
+            <div class="w-full md:w-72">
+                <input type="text" id="search-input" onkeyup="filterTable()" placeholder="종목명 검색..." class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500">
+            </div>
+        </div>
+
         <!-- Data Table -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="overflow-x-auto">
@@ -43,17 +56,17 @@
                     <thead>
                         <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">
                             <th class="py-3 px-4 font-semibold">종목명</th>
-                            <th class="py-3 px-4 font-semibold">종목코드</th>
                             <th class="py-3 px-4 font-semibold">현재가</th>
                             <th class="py-3 px-4 font-semibold">청산단가</th>
                             <th class="py-3 px-4 font-semibold">매수적정</th>
                             <th class="py-3 px-4 font-semibold">투자유형</th>
-                            <th class="py-3 px-4 font-semibold">예상수익률(ISA)</th>
+                            <th class="py-3 px-4 font-semibold">예상수익률 (일반)</th>
+                            <th class="py-3 px-4 font-semibold">예상수익률 (ISA)</th>
                             <th class="py-3 px-4 font-semibold">상태</th>
                         </tr>
                     </thead>
                     <tbody id="spac-table-body" class="divide-y divide-gray-100 text-sm">
-                        <!-- 데이터가 자바스크립트로 동적 삽입됩니다 -->
+                        <!-- 데이터가 동적 삽입됩니다 -->
                     </tbody>
                 </table>
             </div>
@@ -61,6 +74,9 @@
     </div>
 
     <script>
+        let allItems = [];
+        let currentFilter = 'all';
+
         async function loadSpacData() {
             try {
                 const response = await fetch('data/spacs.json');
@@ -71,36 +87,78 @@
 
                 let fairBuyCount = 0;
                 let maxYield = 0;
-                const tbody = document.getElementById('spac-table-body');
-                tbody.innerHTML = '';
 
-                data.items.forEach(item => {
+                allItems = data.items;
+                allItems.forEach(item => {
                     if (item.is_fair_buy === 'O') fairBuyCount++;
                     if (item.yield_isa > maxYield) maxYield = item.yield_isa;
-
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-gray-50 transition-colors";
-                    
-                    tr.innerHTML = `
-                        <td class="py-3 px-4 font-medium text-gray-900">${item.name}</td>
-                        <td class="py-3 px-4 text-gray-500 font-mono">${item.code}</td>
-                        <td class="py-3 px-4">${item.current_price.toLocaleString()}원</td>
-                        <td class="py-3 px-4 text-gray-600">${item.liquidation_price.toLocaleString()}원</td>
-                        <td class="py-3 px-4 font-bold ${item.is_fair_buy === 'O' ? 'text-blue-600' : 'text-gray-400'}">${item.is_fair_buy}</td>
-                        <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full ${item.invest_type === '합병' ? 'bg-purple-50 text-purple-700' : 'bg-amber-50 text-amber-700'}">${item.invest_type}</span></td>
-                        <td class="py-3 px-4 font-semibold text-emerald-600">${item.yield_isa}%</td>
-                        <td class="py-3 px-4 text-gray-500 text-xs">${item.status}</td>
-                    `;
-                    tbody.appendChild(tr);
                 });
 
                 document.getElementById('fair-buy-count').innerText = `${fairBuyCount}개`;
                 document.getElementById('max-yield').innerText = `${maxYield}%`;
 
+                renderTable(allItems);
+
             } catch (error) {
-                console.error('데이터를 불러오는 중 에러 발생:', error);
+                console.error('데이터 로드 에러:', error);
                 document.getElementById('update-time').innerText = '데이터 로드 실패';
             }
+        }
+
+        function renderTable(items) {
+            const tbody = document.getElementById('spac-table-body');
+            tbody.innerHTML = '';
+
+            if (items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-gray-400">조건에 일치하는 종목이 없습니다.</td></tr>`;
+                return;
+            }
+
+            items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition-colors";
+                
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-medium text-gray-900">${item.name}</td>
+                    <td class="py-3 px-4">${item.current_price.toLocaleString()}원</td>
+                    <td class="py-3 px-4 text-gray-600">${item.liquidation_price.toLocaleString()}원</td>
+                    <td class="py-3 px-4 font-bold ${item.is_fair_buy === 'O' ? 'text-blue-600' : 'text-gray-400'}">${item.is_fair_buy}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full ${item.invest_type === '합병' ? 'bg-purple-50 text-purple-700' : 'bg-amber-50 text-amber-700'}">${item.invest_type}</span></td>
+                    <td class="py-3 px-4 font-semibold text-gray-700">${item.yield_general}%</td>
+                    <td class="py-3 px-4 font-semibold text-emerald-600">${item.yield_isa}%</td>
+                    <td class="py-3 px-4 text-gray-500 text-xs">${item.status}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterTable(filterType) {
+            if (filterType) {
+                currentFilter = filterType;
+                // 버튼 스타일 토글
+                ['all', 'fair', 'liquidation', 'merger'].forEach(type => {
+                    const btn = document.getElementById(`btn-${type}`);
+                    if (type === filterType) {
+                        btn.className = "px-4 py-2 text-sm font-medium rounded-lg bg-slate-800 text-white transition-colors";
+                    } else {
+                        btn.className = "px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors";
+                    }
+                });
+            }
+
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+
+            let filtered = allItems.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchQuery);
+                if (!matchesSearch) return false;
+
+                if (currentFilter === 'fair') return item.is_fair_buy === 'O';
+                if (currentFilter === 'liquidation') return item.invest_type === '청산';
+                if (currentFilter === 'merger') return item.invest_type === '합병';
+                return true; // 'all'
+            });
+
+            renderTable(filtered);
         }
 
         loadSpacData();
