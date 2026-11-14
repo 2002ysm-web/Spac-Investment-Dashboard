@@ -18,20 +18,18 @@
                         기준 예금금리: 연 --%
                     </span>
                 </div>
-                <p class="text-sm text-slate-500 mt-1">KRX, 네이버 금융 및 DART 공시 데이터를 기반으로 실시간 자동 갱신됩니다.</p>
             </div>
             <div id="update-time" class="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 text-xs font-semibold text-slate-600">
                 데이터 로딩 중...
             </div>
         </div>
 
-        <!-- Recommendations Section (합병형 4개, 청산형 4개 - 완벽한 2x2 그리드 배치) -->
+        <!-- Recommendations Section (합병형 4개, 청산형 4개 - 2x2 그리드 깔끔한 배치) -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-            <!-- 1. 합병형 TOP 추천 (2x2 그리드) -->
+            <!-- 1. 합병형 추천 (2x2 그리드) -->
             <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-900 text-white p-6 rounded-2xl shadow-lg border border-indigo-500/25">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-base font-bold tracking-tight text-indigo-200">🤝 합병형 TOP 추천</h2>
-                    <span class="text-[11px] bg-indigo-500/30 text-indigo-300 px-2.5 py-1 rounded-full font-semibold">MERGER 2x2</span>
+                    <h2 class="text-base font-bold tracking-tight text-indigo-200">🤝 합병형 추천</h2>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <!-- 1. 예금 이상 (ISA) -->
@@ -85,11 +83,10 @@
                 </div>
             </div>
 
-            <!-- 2. 청산형 TOP 추천 (2x2 그리드) -->
+            <!-- 2. 청산형 추천 (2x2 그리드) -->
             <div class="bg-gradient-to-br from-blue-950 via-slate-900 to-slate-900 text-white p-6 rounded-2xl shadow-lg border border-blue-500/25">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-base font-bold tracking-tight text-blue-200">🛡️ 청산형 TOP 추천</h2>
-                    <span class="text-[11px] bg-blue-500/30 text-blue-300 px-2.5 py-1 rounded-full font-semibold">LIQUIDATION 2x2</span>
+                    <h2 class="text-base font-bold tracking-tight text-blue-200">🛡️ 청산형 추천</h2>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <!-- 1. 예금 이상 (ISA) -->
@@ -146,7 +143,6 @@
 
         <!-- Filters & Search Bar -->
         <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-center">
-            <!-- 1. 유형 -->
             <div>
                 <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">유형</label>
                 <select id="filter-type" onchange="applyFilters()" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium text-slate-700">
@@ -155,7 +151,6 @@
                     <option value="청산">청산</option>
                 </select>
             </div>
-            <!-- 2. 매수 -->
             <div>
                 <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">매수</label>
                 <select id="filter-fair" onchange="applyFilters()" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium text-slate-700">
@@ -164,7 +159,6 @@
                     <option value="X">X</option>
                 </select>
             </div>
-            <!-- 3. 상태 -->
             <div>
                 <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">상태</label>
                 <select id="filter-status" onchange="applyFilters()" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium text-slate-700">
@@ -174,7 +168,6 @@
                     <option value="합병">합병</option>
                 </select>
             </div>
-            <!-- 4. 일반 (투자계좌) -->
             <div>
                 <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">일반</label>
                 <select id="filter-account" onchange="applyFilters()" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium text-slate-700">
@@ -182,7 +175,6 @@
                     <option value="general">일반</option>
                 </select>
             </div>
-            <!-- 5. 예상수익률 -->
             <div>
                 <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">예상수익률</label>
                 <select id="filter-yield-range" onchange="applyFilters()" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium text-slate-700">
@@ -192,7 +184,6 @@
                     <option value="negative">마이너스 (&lt;0%)</option>
                 </select>
             </div>
-            <!-- 검색 -->
             <div>
                 <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">검색</label>
                 <input type="text" id="search-input" onkeyup="applyFilters()" placeholder="종목명 입력..." class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-700">
