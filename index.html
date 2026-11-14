@@ -25,53 +25,65 @@
             </div>
         </div>
 
-        <!-- Recommendations Section (합병형 2개, 청산형 2개) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <!-- 1. 합병형 (예금 이상) -->
-            <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-5 rounded-2xl shadow-md relative overflow-hidden border border-indigo-500/20">
-                <span class="absolute top-3 right-3 bg-indigo-500/30 text-indigo-200 text-[10px] px-2 py-0.5 rounded-full font-semibold">합병형 · 예금이상</span>
-                <p class="text-[11px] uppercase tracking-wider text-indigo-300 font-bold mb-1">MERGER (ABOVE)</p>
-                <h3 id="rec-merger-high-name" class="text-lg font-bold mb-3 tracking-tight truncate">-</h3>
-                <div class="space-y-1.5 text-xs bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <div class="flex justify-between"><span class="text-indigo-300">현재가</span><span id="rec-merger-high-price" class="font-bold">-</span></div>
-                    <div class="flex justify-between"><span class="text-indigo-300">수익률(ISA)</span><span id="rec-merger-high-yield" class="font-bold text-emerald-400">-</span></div>
-                    <div class="flex justify-between"><span class="text-indigo-300">청산가</span><span id="rec-merger-high-liq" class="font-bold">-</span></div>
+        <!-- Recommendations Section (합병형 1개, 청산형 1개 - 각각 2단 분할 레이아웃) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- 1. 합병형 추천 카드 (내부 2단 분할) -->
+            <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-900 text-white p-6 rounded-2xl shadow-lg border border-indigo-500/20">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold tracking-tight text-indigo-200">🤝 합병형 TOP 추천</h2>
+                    <span class="text-xs bg-indigo-500/30 text-indigo-300 px-2.5 py-1 rounded-full font-semibold">MERGER TYPE</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- 좌측: 예금 이상 -->
+                    <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                        <span class="text-[11px] font-bold text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded">예금 이상</span>
+                        <h3 id="rec-merger-high-name" class="text-base font-bold mt-2 mb-2 truncate">-</h3>
+                        <div class="space-y-1 text-xs text-slate-300">
+                            <div class="flex justify-between"><span>현재가</span><span id="rec-merger-high-price" class="font-bold text-white">-</span></div>
+                            <div class="flex justify-between"><span>수익률(ISA)</span><span id="rec-merger-high-yield" class="font-bold text-emerald-400">-</span></div>
+                            <div class="flex justify-between"><span>청산가</span><span id="rec-merger-high-liq" class="font-bold text-white">-</span></div>
+                        </div>
+                    </div>
+                    <!-- 우측: 0% 이상 ~ 예금 미만 -->
+                    <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                        <span class="text-[11px] font-bold text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded">0%~예금미만</span>
+                        <h3 id="rec-merger-mid-name" class="text-base font-bold mt-2 mb-2 truncate">-</h3>
+                        <div class="space-y-1 text-xs text-slate-300">
+                            <div class="flex justify-between"><span>현재가</span><span id="rec-merger-mid-price" class="font-bold text-white">-</span></div>
+                            <div class="flex justify-between"><span>수익률(ISA)</span><span id="rec-merger-mid-yield" class="font-bold text-emerald-400">-</span></div>
+                            <div class="flex justify-between"><span>청산가</span><span id="rec-merger-mid-liq" class="font-bold text-white">-</span></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- 2. 합병형 (0% 이상 ~ 예금 미만) -->
-            <div class="bg-gradient-to-br from-indigo-950 to-slate-900 text-white p-5 rounded-2xl shadow-md relative overflow-hidden border border-indigo-500/20">
-                <span class="absolute top-3 right-3 bg-indigo-500/30 text-indigo-200 text-[10px] px-2 py-0.5 rounded-full font-semibold">합병형 · 0%~예금미만</span>
-                <p class="text-[11px] uppercase tracking-wider text-indigo-300 font-bold mb-1">MERGER (MID)</p>
-                <h3 id="rec-merger-mid-name" class="text-lg font-bold mb-3 tracking-tight truncate">-</h3>
-                <div class="space-y-1.5 text-xs bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <div class="flex justify-between"><span class="text-indigo-300">현재가</span><span id="rec-merger-mid-price" class="font-bold">-</span></div>
-                    <div class="flex justify-between"><span class="text-indigo-300">수익률(ISA)</span><span id="rec-merger-mid-yield" class="font-bold text-emerald-400">-</span></div>
-                    <div class="flex justify-between"><span class="text-indigo-300">청산가</span><span id="rec-merger-mid-liq" class="font-bold">-</span></div>
+            <!-- 2. 청산형 추천 카드 (내부 2단 분할) -->
+            <div class="bg-gradient-to-br from-blue-950 via-slate-900 to-slate-900 text-white p-6 rounded-2xl shadow-lg border border-blue-500/20">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold tracking-tight text-blue-200">🛡️ 청산형 TOP 추천</h2>
+                    <span class="text-xs bg-blue-500/30 text-blue-300 px-2.5 py-1 rounded-full font-semibold">LIQUIDATION TYPE</span>
                 </div>
-            </div>
-
-            <!-- 3. 청산형 (예금 이상) -->
-            <div class="bg-gradient-to-br from-blue-900 to-slate-900 text-white p-5 rounded-2xl shadow-md relative overflow-hidden border border-blue-500/20">
-                <span class="absolute top-3 right-3 bg-blue-500/30 text-blue-200 text-[10px] px-2 py-0.5 rounded-full font-semibold">청산형 · 예금이상</span>
-                <p class="text-[11px] uppercase tracking-wider text-blue-300 font-bold mb-1">LIQUIDATION (ABOVE)</p>
-                <h3 id="rec-liq-high-name" class="text-lg font-bold mb-3 tracking-tight truncate">-</h3>
-                <div class="space-y-1.5 text-xs bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <div class="flex justify-between"><span class="text-blue-300">현재가</span><span id="rec-liq-high-price" class="font-bold">-</span></div>
-                    <div class="flex justify-between"><span class="text-blue-300">수익률(ISA)</span><span id="rec-liq-high-yield" class="font-bold text-emerald-400">-</span></div>
-                    <div class="flex justify-between"><span class="text-blue-300">청산가</span><span id="rec-liq-high-liq" class="font-bold">-</span></div>
-                </div>
-            </div>
-
-            <!-- 4. 청산형 (0% 이상 ~ 예금 미만) -->
-            <div class="bg-gradient-to-br from-blue-950 to-slate-900 text-white p-5 rounded-2xl shadow-md relative overflow-hidden border border-blue-500/20">
-                <span class="absolute top-3 right-3 bg-blue-500/30 text-blue-200 text-[10px] px-2 py-0.5 rounded-full font-semibold">청산형 · 0%~예금미만</span>
-                <p class="text-[11px] uppercase tracking-wider text-blue-300 font-bold mb-1">LIQUIDATION (MID)</p>
-                <h3 id="rec-liq-mid-name" class="text-lg font-bold mb-3 tracking-tight truncate">-</h3>
-                <div class="space-y-1.5 text-xs bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <div class="flex justify-between"><span class="text-blue-300">현재가</span><span id="rec-liq-mid-price" class="font-bold">-</span></div>
-                    <div class="flex justify-between"><span class="text-blue-300">수익률(ISA)</span><span id="rec-liq-mid-yield" class="font-bold text-emerald-400">-</span></div>
-                    <div class="flex justify-between"><span class="text-blue-300">청산가</span><span id="rec-liq-mid-liq" class="font-bold">-</span></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- 좌측: 예금 이상 -->
+                    <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                        <span class="text-[11px] font-bold text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded">예금 이상</span>
+                        <h3 id="rec-liq-high-name" class="text-base font-bold mt-2 mb-2 truncate">-</h3>
+                        <div class="space-y-1 text-xs text-slate-300">
+                            <div class="flex justify-between"><span>현재가</span><span id="rec-liq-high-price" class="font-bold text-white">-</span></div>
+                            <div class="flex justify-between"><span>수익률(ISA)</span><span id="rec-liq-high-yield" class="font-bold text-emerald-400">-</span></div>
+                            <div class="flex justify-between"><span>청산가</span><span id="rec-liq-high-liq" class="font-bold text-white">-</span></div>
+                        </div>
+                    </div>
+                    <!-- 우측: 0% 이상 ~ 예금 미만 -->
+                    <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                        <span class="text-[11px] font-bold text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded">0%~예금미만</span>
+                        <h3 id="rec-liq-mid-name" class="text-base font-bold mt-2 mb-2 truncate">-</h3>
+                        <div class="space-y-1 text-xs text-slate-300">
+                            <div class="flex justify-between"><span>현재가</span><span id="rec-liq-mid-price" class="font-bold text-white">-</span></div>
+                            <div class="flex justify-between"><span>수익률(ISA)</span><span id="rec-liq-mid-yield" class="font-bold text-emerald-400">-</span></div>
+                            <div class="flex justify-between"><span>청산가</span><span id="rec-liq-mid-liq" class="font-bold text-white">-</span></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -96,13 +108,14 @@
                     <option value="X">X</option>
                 </select>
             </div>
-            <!-- 3. 거래상태 -->
+            <!-- 3. 상태 (정상 / 정지 / 합병) -->
             <div>
-                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">거래상태</label>
+                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">상태</label>
                 <select id="filter-status" onchange="applyFilters()" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium text-slate-700">
                     <option value="all">전체</option>
                     <option value="정상" selected>정상</option>
-                    <option value="거래정지">정지</option>
+                    <option value="정지">정지</option>
+                    <option value="합병">합병</option>
                 </select>
             </div>
             <!-- 4. 일반 (투자계좌) -->
@@ -231,6 +244,10 @@
                 
                 const targetYield = accountType === 'isa' ? item.yield_isa : item.yield_general;
                 const yieldColorClass = targetYield < 0 ? 'text-rose-500 font-bold' : 'text-emerald-600 font-bold';
+                
+                let statusBadgeClass = 'text-slate-500';
+                if (item.status === '정지') statusBadgeClass = 'bg-rose-50 text-rose-600 font-bold border border-rose-200 px-2 py-1 rounded-md text-xs';
+                else if (item.status === '합병') statusBadgeClass = 'bg-purple-50 text-purple-700 font-bold border border-purple-200 px-2 py-1 rounded-md text-xs';
 
                 tr.innerHTML = `
                     <td class="py-4 px-6 font-bold text-slate-900">${item.name}</td>
@@ -239,7 +256,7 @@
                     <td class="py-4 px-6"><span class="font-bold ${item.is_fair_buy === 'O' ? 'text-indigo-600' : 'text-slate-400'}">${item.is_fair_buy}</span></td>
                     <td class="py-4 px-6"><span class="px-2.5 py-1 text-xs rounded-full font-semibold ${item.invest_type === '합병' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200/50' : 'bg-amber-50 text-amber-700 border border-amber-200/50'}">${item.invest_type}</span></td>
                     <td class="py-4 px-6 ${yieldColorClass}">${targetYield}%</td>
-                    <td class="py-4 px-6 text-xs"><span class="px-2 py-1 rounded-md ${item.status === '거래정지' ? 'bg-rose-50 text-rose-600 font-bold border border-rose-200' : 'text-slate-500'}">${item.status}</span></td>
+                    <td class="py-4 px-6"><span class="${statusBadgeClass}">${item.status}</span></td>
                 `;
                 tbody.appendChild(tr);
             });
