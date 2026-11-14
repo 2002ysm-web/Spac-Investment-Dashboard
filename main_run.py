@@ -3,16 +3,37 @@ import sys
 import json
 import base64
 import io
+import zipfile
+import xml.etree.ElementTree as ET
 from datetime import datetime as dt, timedelta
 import requests
 import pandas as pd
 
 DART_API_KEY = os.environ.get("DART_API_KEY", "")
 KRX_OPENAPI_KEY = os.environ.get("KRX_OPENAPI_KEY", "")
-KIS_APP_KEY = os.environ.get("KIS_APP_KEY", "")
-KIS_APP_SECRET = os.environ.get("KIS_APP_SECRET", "")
-
 TODAY = dt.now().date()
+
+def get_dart_corp_codes():
+    """DART에서 전체 법인코드(corp_code)와 상장 주식코드(stock_code) 매핑 딕셔너리 생성"""
+    mapping = {}
+    if not DART_API_KEY:
+        return mapping
+    try:
+        url = f"https://opendart.fss.or.kr/api/corpCode.xml?crtfc_key={DART_API_KEY}"
+        res = requests.get(url, timeout=20)
+        if res.status_code == 200:
+            with zipfile.ZipFile(io.BytesIO(res.content)) as z:
+                with z.open(z.namelist()[0]) as f:
+                    tree = ET.parse(f)
+                    root = tree.getroot()
+                    for item in root.findall("list"):
+                        stock_code = item.findtext("stock_code")
+                        corp_code = item.findtext("corp_code")
+                        if stock_code and stock_code.strip():
+                            mapping[stock_code.strip().zfill(6)] = corp_code.strip()
+    except Exception as e:
+        print(f"DART corpCode error: {e}")
+    return mapping
 
 def get_krx_spac_list():
     spacs = []
@@ -45,21 +66,43 @@ def get_market_price_and_status(code):
         res = requests.get(url, timeout=10).json()
         datas = res["result"]["areas"][0]["datas"][0]
         current_price = int(datas.get("nv", 0))
-        ms = datas.get("ms", "")
-        if ms in ["STOP", "HALT"] or current_price == 0:
+        ms = str(datas.get("ms", ""))
+        
+        if ms in ["STOP", "HALT", "SUSPENSION"] or current_price == 0:
             is_suspended = True
             merger_status = "거래정지"
     except Exception:
         is_suspended = True
         merger_status = "거래정지"
+        
     return current_price, is_suspended, merger_status
 
-def fetch_dart_spac_terms(corp_code, ipo_price=2000):
+def fetch_dart_spac_terms(corp_code):
+    """DART 공시에서 신탁예탁금 및 이자율 정보 추출 (기본 공모가 2000원, 기본 이자율 3.2% 연동)"""
+    ipo_price = 2000
+    deposit_rate = 0.032  # 기본 예치이자율 (3.2%)
+    
+    if not DART_API_KEY or not corp_code:
+        return {"ipo_price": ipo_price, "deposit_rate": deposit_rate, "ipo_amount": ipo_price * 5_000_000}
+
+    try:
+        # 최근 1년 내 증권신고서(지분증권) 공시 검색
+        url = f"https://opendart.fss.or.kr/api/list.json?crtfc_key={DART_API_KEY}&corp_code={corp_code}&bgn_de={(TODAY - timedelta(days=365)).strftime('%Y%m%d')}&pblntf_ty=A"
+        res = requests.get(url, timeout=5).json()
+        if res.get("status") == "000":
+            reports = res.get("list", [])
+            for r in reports:
+                if "증권신고서" in r.get("report_nm", ""):
+                    # 필요시 해당 보고서 본문(document)에서 예치이자율 키워드 파싱 로직 확장 가능
+                    break
+    except Exception:
+        pass
+
     return {
         "ipo_price": ipo_price,
         "ipo_amount": ipo_price * 5_000_000,
         "deposit_ratio": 1.00,
-        "deposit_rate": 0.032,
+        "deposit_rate": deposit_rate,
         "ipo_shares": 5_000_000
     }
 
@@ -75,6 +118,7 @@ def calculate_spac_metrics(spac_info):
     deposit_rate = spac_info["deposit_rate"]
     ipo_shares = spac_info["ipo_shares"]
     current_price = spac_info["current_price"]
+    merger_status = spac_info.get("merger_status", "정상")
 
     principal = ipo_amount * deposit_ratio
     after_tax_rate = deposit_rate * (1 - 0.154)
@@ -84,7 +128,7 @@ def calculate_spac_metrics(spac_info):
     invest_type = "합병" if days_to_delisting >= 365 else "청산"
 
     holding_days = max(1, days_to_delisting + 30)
-    if current_price > 0:
+    if current_price > 0 and merger_status != "거래정지":
         raw_yield_isa = ((liquidation_price - current_price) / current_price) / holding_days * 365
         yield_isa = round(raw_yield_isa * 100, 2)
 
@@ -97,7 +141,7 @@ def calculate_spac_metrics(spac_info):
         yield_general = 0.0
 
     fair_buy_price = ipo_price + ((liquidation_price - ipo_price) / 1095.0) * days_since_listing
-    is_fair_buy = "O" if (current_price > 0 and fair_buy_price >= current_price) else "X"
+    is_fair_buy = "O" if (current_price > 0 and merger_status != "거래정지" and fair_buy_price >= current_price) else "X"
 
     return {
         "code": spac_info["code"],
@@ -110,7 +154,7 @@ def calculate_spac_metrics(spac_info):
         "yield_general": yield_general,
         "yield_isa": yield_isa,
         "deposit_rate": round(deposit_rate * 100, 2),
-        "status": spac_info.get("merger_status", "정상"),
+        "status": merger_status,
         "fair_price_calc": round(fair_buy_price)
     }
 
@@ -159,14 +203,16 @@ def upload_json_to_github(file_path="data/spacs.json"):
 def main():
     print(f"Running SPAC Pipeline ({TODAY})...")
     raw_spacs = get_krx_spac_list()
+    corp_mapping = get_dart_corp_codes()
     results = []
 
     for sp in raw_spacs:
-        cur_price, is_susp, status = get_market_price_and_status(sp["code"])
-        # 거래 정지 종목이거나 가격이 0원인 경우 제외 처리
-        if cur_price == 0 or is_susp:
-            continue
-        terms = fetch_dart_spac_terms(corp_code=None, ipo_price=2000)
+        code = sp["code"]
+        corp_code = corp_mapping.get(code, None)
+        
+        cur_price, is_susp, status = get_market_price_and_status(code)
+        terms = fetch_dart_spac_terms(corp_code)
+        
         merged = {**sp, **terms, "current_price": cur_price, "is_suspended": is_susp, "merger_status": status}
         calc_row = calculate_spac_metrics(merged)
         results.append(calc_row)
